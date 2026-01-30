@@ -17,7 +17,7 @@ interface TransactionListProps {
 
 export function TransactionList({ transactions, onEdit, onUpdate }: TransactionListProps) {
     const [deleting, setDeleting] = useState<string | null>(null)
-    const [currencySymbol, setCurrencySymbol] = useState('AED')
+    const [currencySymbol, setCurrencySymbol] = useState('Dh')
 
     useEffect(() => {
         loadCurrency()

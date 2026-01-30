@@ -27,8 +27,8 @@ function DashboardLayoutContent({
             {/* Main content - with proper responsive padding */}
             <div className={`
                 transition-all duration-300
-                lg:pl-64
-                ${displayCollapsed ? 'lg:pl-20' : ''}
+                pt-16 lg:pt-0
+                ${displayCollapsed ? 'lg:pl-20' : 'lg:pl-72'}
             `}>
                 <main className="min-h-screen">
                     {children}

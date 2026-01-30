@@ -21,7 +21,7 @@ export function TransactionForm({ isOpen, onClose, transaction, onSuccess }: Tra
     const [type, setType] = useState<'income' | 'expense'>(transaction?.type || 'expense')
     const [categories, setCategories] = useState<Category[]>([])
     const [loading, setLoading] = useState(false)
-    const [currencySymbol, setCurrencySymbol] = useState('AED')
+    const [currencySymbol, setCurrencySymbol] = useState('Dh')
 
     useEffect(() => {
         if (isOpen) {

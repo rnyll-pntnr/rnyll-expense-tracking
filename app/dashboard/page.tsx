@@ -52,7 +52,7 @@ export default async function DashboardPage() {
                     </div>
 
                     {/* Stats Grid */}
-                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 md:grid-cols-2 mb-8">
                         <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-100 shadow-lg shadow-slate-200/50 p-6 transition-all duration-300 hover:shadow-xl hover:shadow-slate-200/60">
                             <div className="flex items-center gap-4">
                                 <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-green-100 to-green-200 flex items-center justify-center">

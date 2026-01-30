@@ -1,6 +1,6 @@
 // Currency options - can be used in both client and server components
 export const CURRENCIES = [
-    { code: 'AED', symbol: 'AED', name: 'UAE Dirham' },
+    { code: 'AED', symbol: 'Dh', name: 'UAE Dirham' },
     { code: 'USD', symbol: '$', name: 'US Dollar' },
     { code: 'EUR', symbol: '€', name: 'Euro' },
     { code: 'GBP', symbol: '£', name: 'British Pound' },

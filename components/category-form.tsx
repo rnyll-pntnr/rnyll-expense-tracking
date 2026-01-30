@@ -1,6 +1,6 @@
 'use client'
 
-import { Fragment, useState } from 'react'
+import { Fragment, useState, useEffect } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
 import { XMarkIcon } from '@heroicons/react/24/outline'
 import {
@@ -18,12 +18,13 @@ import {
     CurrencyDollarIcon
 } from '@heroicons/react/24/solid'
 import { IconRenderer } from '@/components/icon-helper'
-import { addCategory, type Category, CategoryType } from '@/app/actions/categories'
+import { addCategory, updateCategory, type Category, CategoryType } from '@/app/actions/categories'
 import toast from 'react-hot-toast'
 
 interface CategoryFormProps {
     isOpen: boolean
     onClose: () => void
+    category?: Category | null
     onSuccess?: () => void
 }
 
@@ -47,12 +48,30 @@ const ICONS = [
     { name: 'trending-up', Icon: ArrowUpIcon },
 ]
 
-export function CategoryForm({ isOpen, onClose, onSuccess }: CategoryFormProps) {
+export function CategoryForm({ isOpen, onClose, category, onSuccess }: CategoryFormProps) {
     const [type, setType] = useState<CategoryType>('expense')
     const [name, setName] = useState('')
     const [color, setColor] = useState(COLORS[0])
     const [icon, setIcon] = useState(ICONS[0].name)
     const [loading, setLoading] = useState(false)
+
+    const isEditing = !!category
+
+    // Initialize form when category changes
+    useEffect(() => {
+        if (category) {
+            setName(category.name)
+            setType(category.type)
+            setColor(category.color)
+            setIcon(category.icon)
+        } else if (!isOpen) {
+            // Reset form when closed
+            setName('')
+            setType('expense')
+            setColor(COLORS[0])
+            setIcon(ICONS[0].name)
+        }
+    }, [category, isOpen])
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault()
@@ -65,14 +84,18 @@ export function CategoryForm({ isOpen, onClose, onSuccess }: CategoryFormProps) 
         formData.set('icon', icon)
 
         try {
-            const result = await addCategory(formData)
+            let result
+            if (isEditing && category) {
+                result = await updateCategory(category.id, formData)
+            } else {
+                result = await addCategory(formData)
+            }
 
             if (result.error) {
                 toast.error(result.error)
             } else {
-                toast.success('Category added!')
+                toast.success(isEditing ? 'Category updated!' : 'Category added!')
                 onClose()
-                resetForm()
                 onSuccess?.()
             }
         } catch (error) {
@@ -80,13 +103,6 @@ export function CategoryForm({ isOpen, onClose, onSuccess }: CategoryFormProps) 
         } finally {
             setLoading(false)
         }
-    }
-
-    function resetForm() {
-        setName('')
-        setType('expense')
-        setColor(COLORS[0])
-        setIcon(ICONS[0].name)
     }
 
     return (
@@ -117,14 +133,14 @@ export function CategoryForm({ isOpen, onClose, onSuccess }: CategoryFormProps) 
                         >
                             <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white/95 backdrop-blur-sm p-6 text-left align-middle shadow-xl shadow-slate-200/50 border border-slate-100 transition-all">
                                 <div className="flex items-center justify-between mb-4">
-                                    <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-gray-900">
-                                        Add Category
+                                    <Dialog.Title as="h3" className="text-lg font-semibold leading-6 text-gray-900">
+                                        {isEditing ? 'Edit Category' : 'Add Category'}
                                     </Dialog.Title>
                                     <button
                                         onClick={onClose}
-                                        className="rounded-md p-1 hover:bg-gray-100 transition-colors"
+                                        className="rounded-lg p-1.5 hover:bg-slate-100 transition-colors"
                                     >
-                                        <XMarkIcon className="h-5 w-5 text-gray-500" />
+                                        <XMarkIcon className="h-5 w-5 text-slate-500" />
                                     </button>
                                 </div>
 
@@ -186,7 +202,7 @@ export function CategoryForm({ isOpen, onClose, onSuccess }: CategoryFormProps) 
                                                     key={c}
                                                     type="button"
                                                     onClick={() => setColor(c)}
-                                                    className={`w-8 h-8 rounded-full border-2 transition-colors ${color === c ? 'border-gray-900 scale-110' : 'border-transparent'}`}
+                                                    className={`w-8 h-8 rounded-full border-2 transition-all duration-200 ${color === c ? 'border-gray-900 scale-110' : 'border-transparent hover:scale-105'}`}
                                                     style={{ backgroundColor: c }}
                                                 />
                                             ))}
@@ -200,12 +216,12 @@ export function CategoryForm({ isOpen, onClose, onSuccess }: CategoryFormProps) 
                                             Icon
                                         </label>
                                         <div className="flex flex-wrap gap-2">
-                                            {ICONS.map(({ name, Icon }) => (
+                                            {ICONS.map(({ name: iconName, Icon }) => (
                                                 <button
-                                                    key={name}
+                                                    key={iconName}
                                                     type="button"
-                                                    onClick={() => setIcon(name)}
-                                                    className={`w-10 h-10 rounded-lg border-2 flex items-center justify-center text-white transition-colors ${icon === name ? 'border-gray-900' : 'border-transparent'}`}
+                                                    onClick={() => setIcon(iconName)}
+                                                    className={`w-10 h-10 rounded-xl border-2 flex items-center justify-center text-white transition-all duration-200 ${icon === iconName ? 'border-gray-900 scale-105' : 'border-transparent hover:scale-105'}`}
                                                     style={{ backgroundColor: color }}
                                                 >
                                                     <Icon className="h-5 w-5" />
@@ -238,10 +254,7 @@ export function CategoryForm({ isOpen, onClose, onSuccess }: CategoryFormProps) 
                                     <div className="flex gap-3 pt-4">
                                         <button
                                             type="button"
-                                            onClick={() => {
-                                                resetForm()
-                                                onClose()
-                                            }}
+                                            onClick={onClose}
                                             className="flex-1 px-4 py-2.5 border border-gray-300 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-all duration-200"
                                         >
                                             Cancel
@@ -251,7 +264,7 @@ export function CategoryForm({ isOpen, onClose, onSuccess }: CategoryFormProps) 
                                             disabled={loading || !name.trim()}
                                             className="flex-1 px-4 py-2.5 border border-transparent rounded-xl shadow-lg shadow-indigo-200 text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
                                         >
-                                            {loading ? 'Adding...' : 'Add Category'}
+                                            {loading ? 'Saving...' : isEditing ? 'Update' : 'Add Category'}
                                         </button>
                                     </div>
                                 </form>

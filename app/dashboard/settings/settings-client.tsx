@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { PlusIcon, TrashIcon } from '@heroicons/react/24/outline'
+import { PlusIcon, TrashIcon, PencilIcon } from '@heroicons/react/24/outline'
 import { CategoryForm } from '@/components/category-form'
 import { IconRenderer } from '@/components/icon-helper'
 import { getCategories, deleteCategory, type Category } from '@/app/actions/categories'
@@ -17,6 +17,7 @@ interface SettingsClientProps {
 
 export function SettingsClient({ userId, userEmail, currency: initialCurrency }: SettingsClientProps) {
     const [isFormOpen, setIsFormOpen] = useState(false)
+    const [editingCategory, setEditingCategory] = useState<Category | null>(null)
     const [categories, setCategories] = useState<Category[]>([])
     const [loading, setLoading] = useState(true)
     const [activeTab, setActiveTab] = useState<'profile' | 'categories' | 'preferences'>('categories')
@@ -34,6 +35,16 @@ export function SettingsClient({ userId, userEmail, currency: initialCurrency }:
             setCategories(data)
         }
         setLoading(false)
+    }
+
+    function handleEditCategory(category: Category) {
+        setEditingCategory(category)
+        setIsFormOpen(true)
+    }
+
+    function handleAddCategory() {
+        setEditingCategory(null)
+        setIsFormOpen(true)
     }
 
     async function handleDeleteCategory(id: string, name: string) {
@@ -184,8 +195,8 @@ export function SettingsClient({ userId, userEmail, currency: initialCurrency }:
                                 </p>
                             </div>
                             <button
-                                onClick={() => setIsFormOpen(true)}
-                                className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                onClick={handleAddCategory}
+                                className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-xl text-white bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200"
                             >
                                 <PlusIcon className="h-5 w-5 mr-2" />
                                 Add Category
@@ -199,32 +210,41 @@ export function SettingsClient({ userId, userEmail, currency: initialCurrency }:
                         ) : (
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                 {/* Expense Categories */}
-                                <div className="bg-white shadow rounded-lg">
-                                    <div className="p-4 border-b border-gray-200 bg-red-50">
-                                        <h4 className="text-sm font-medium text-red-800">Expense Categories</h4>
+                                <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-100 shadow-lg shadow-slate-200/50 overflow-hidden">
+                                    <div className="p-4 border-b border-slate-100 bg-gradient-to-r from-red-50 to-red-100/50">
+                                        <h4 className="text-sm font-semibold text-red-800">Expense Categories</h4>
                                     </div>
-                                    <div className="divide-y divide-gray-200 max-h-96 overflow-y-auto">
+                                    <div className="divide-y divide-slate-100 max-h-96 overflow-y-auto">
                                         {expenseCategories.length === 0 ? (
-                                            <p className="p-4 text-sm text-gray-500">No expense categories yet.</p>
+                                            <p className="p-4 text-sm text-gray-500 text-center">No expense categories yet.</p>
                                         ) : (
                                             expenseCategories.map((category) => (
-                                                <div key={category.id} className="p-4 flex items-center justify-between hover:bg-gray-50">
+                                                <div key={category.id} className="p-4 flex items-center justify-between hover:bg-slate-50/80 transition-all duration-200">
                                                     <div className="flex items-center gap-3">
                                                         <div
-                                                            className="w-10 h-10 rounded-full flex items-center justify-center text-white"
+                                                            className="w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-md"
                                                             style={{ backgroundColor: category.color }}
                                                         >
                                                             <IconRenderer icon={category.icon} className="h-5 w-5" />
                                                         </div>
                                                         <span className="text-sm font-medium text-gray-900">{category.name}</span>
                                                     </div>
-                                                    <button
-                                                        onClick={() => handleDeleteCategory(category.id, category.name)}
-                                                        className="p-2 text-gray-400 hover:text-red-600 transition-colors"
-                                                        title="Delete category"
-                                                    >
-                                                        <TrashIcon className="h-5 w-5" />
-                                                    </button>
+                                                    <div className="flex items-center gap-1">
+                                                        <button
+                                                            onClick={() => handleEditCategory(category)}
+                                                            className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all duration-200"
+                                                            title="Edit category"
+                                                        >
+                                                            <PencilIcon className="h-4 w-4" />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDeleteCategory(category.id, category.name)}
+                                                            className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200"
+                                                            title="Delete category"
+                                                        >
+                                                            <TrashIcon className="h-4 w-4" />
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             ))
                                         )}
@@ -232,32 +252,41 @@ export function SettingsClient({ userId, userEmail, currency: initialCurrency }:
                                 </div>
 
                                 {/* Income Categories */}
-                                <div className="bg-white shadow rounded-lg">
-                                    <div className="p-4 border-b border-gray-200 bg-green-50">
-                                        <h4 className="text-sm font-medium text-green-800">Income Categories</h4>
+                                <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-100 shadow-lg shadow-slate-200/50 overflow-hidden">
+                                    <div className="p-4 border-b border-slate-100 bg-gradient-to-r from-green-50 to-green-100/50">
+                                        <h4 className="text-sm font-semibold text-green-800">Income Categories</h4>
                                     </div>
-                                    <div className="divide-y divide-gray-200 max-h-96 overflow-y-auto">
+                                    <div className="divide-y divide-slate-100 max-h-96 overflow-y-auto">
                                         {incomeCategories.length === 0 ? (
-                                            <p className="p-4 text-sm text-gray-500">No income categories yet.</p>
+                                            <p className="p-4 text-sm text-gray-500 text-center">No income categories yet.</p>
                                         ) : (
                                             incomeCategories.map((category) => (
-                                                <div key={category.id} className="p-4 flex items-center justify-between hover:bg-gray-50">
+                                                <div key={category.id} className="p-4 flex items-center justify-between hover:bg-slate-50/80 transition-all duration-200">
                                                     <div className="flex items-center gap-3">
                                                         <div
-                                                            className="w-10 h-10 rounded-full flex items-center justify-center text-white"
+                                                            className="w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-md"
                                                             style={{ backgroundColor: category.color }}
                                                         >
                                                             <IconRenderer icon={category.icon} className="h-5 w-5" />
                                                         </div>
                                                         <span className="text-sm font-medium text-gray-900">{category.name}</span>
                                                     </div>
-                                                    <button
-                                                        onClick={() => handleDeleteCategory(category.id, category.name)}
-                                                        className="p-2 text-gray-400 hover:text-red-600 transition-colors"
-                                                        title="Delete category"
-                                                    >
-                                                        <TrashIcon className="h-5 w-5" />
-                                                    </button>
+                                                    <div className="flex items-center gap-1">
+                                                        <button
+                                                            onClick={() => handleEditCategory(category)}
+                                                            className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all duration-200"
+                                                            title="Edit category"
+                                                        >
+                                                            <PencilIcon className="h-4 w-4" />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDeleteCategory(category.id, category.name)}
+                                                            className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200"
+                                                            title="Delete category"
+                                                        >
+                                                            <TrashIcon className="h-4 w-4" />
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             ))
                                         )}
@@ -271,7 +300,11 @@ export function SettingsClient({ userId, userEmail, currency: initialCurrency }:
 
             <CategoryForm
                 isOpen={isFormOpen}
-                onClose={() => setIsFormOpen(false)}
+                onClose={() => {
+                    setIsFormOpen(false)
+                    setEditingCategory(null)
+                }}
+                category={editingCategory}
                 onSuccess={loadCategories}
             />
         </div>
