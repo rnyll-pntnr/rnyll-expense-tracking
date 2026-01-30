@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { DashboardLayout } from '@/components/dashboard-layout'
 import { getExpensesByCategory, getTransactionStats } from '@/app/actions/transactions'
 import { getUserSettings } from '@/app/actions/settings'
-import { getCurrencyInfo } from '@/lib/currencies'
+import { getCurrencyInfo, formatCurrency } from '@/lib/currencies'
 import { ExpenseByCategory } from '@/components/charts/expense-by-category'
 import { format, startOfMonth, endOfMonth, startOfYear, endOfYear, subMonths } from 'date-fns'
 
@@ -40,10 +40,12 @@ export default async function ReportsPage() {
         getUserSettings(),
     ])
 
-    const currencySymbol = (await getCurrencyInfo(settingsResult.data?.currency || 'USD')).symbol
+    const currency = await getCurrencyInfo(settingsResult.data?.currency || 'USD')
+    const currencySymbol = currency.symbol
+    const currencyCode = settingsResult.data?.currency || 'USD'
 
     return (
-        <DashboardLayout userEmail={user.email}>
+        <DashboardLayout userEmail={user.email} userName={user.user_metadata.name}>
             <div className="p-6 lg:p-8">
                 <div className="mx-auto max-w-8xl">
                     <div className="mb-8">
@@ -54,77 +56,77 @@ export default async function ReportsPage() {
                     </div>
 
                     {/* Period Stats */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8">
                         {/* Current Month */}
-                        <div className="bg-white shadow rounded-lg p-6">
-                            <h3 className="text-sm font-medium text-gray-500 mb-4">This Month</h3>
-                            <div className="space-y-3">
+                        <div className="bg-white shadow rounded-lg p-4 sm:p-6">
+                            <h3 className="text-sm font-medium text-gray-500 mb-3 sm:mb-4">This Month</h3>
+                            <div className="space-y-2 sm:space-y-3">
                                 <div>
                                     <p className="text-xs text-gray-500">Income</p>
-                                    <p className="text-lg font-semibold text-green-600">
-                                        {currencySymbol}{currentMonthStats.data?.totalIncome.toFixed(2) || '0.00'}
+                                    <p className="text-base sm:text-lg font-semibold text-green-600">
+                                        {currencySymbol}{formatCurrency(currentMonthStats.data?.totalIncome || 0, currencyCode)}
                                     </p>
                                 </div>
                                 <div>
                                     <p className="text-xs text-gray-500">Expenses</p>
-                                    <p className="text-lg font-semibold text-red-600">
-                                        {currencySymbol}{currentMonthStats.data?.totalExpense.toFixed(2) || '0.00'}
+                                    <p className="text-base sm:text-lg font-semibold text-red-600">
+                                        {currencySymbol}{formatCurrency(currentMonthStats.data?.totalExpense || 0, currencyCode)}
                                     </p>
                                 </div>
-                                <div className="pt-3 border-t">
+                                <div className="pt-2 sm:pt-3 border-t">
                                     <p className="text-xs text-gray-500">Balance</p>
-                                    <p className={`text-lg font-semibold ${(currentMonthStats.data?.balance || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                        {currencySymbol}{currentMonthStats.data?.balance.toFixed(2) || '0.00'}
+                                    <p className={`text-base sm:text-lg font-semibold ${(currentMonthStats.data?.balance || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                        {currencySymbol}{formatCurrency(currentMonthStats.data?.balance || 0, currencyCode)}
                                     </p>
                                 </div>
                             </div>
                         </div>
 
                         {/* Last Month */}
-                        <div className="bg-white shadow rounded-lg p-6">
-                            <h3 className="text-sm font-medium text-gray-500 mb-4">Last Month</h3>
-                            <div className="space-y-3">
+                        <div className="bg-white shadow rounded-lg p-4 sm:p-6">
+                            <h3 className="text-sm font-medium text-gray-500 mb-3 sm:mb-4">Last Month</h3>
+                            <div className="space-y-2 sm:space-y-3">
                                 <div>
                                     <p className="text-xs text-gray-500">Income</p>
-                                    <p className="text-lg font-semibold text-green-600">
-                                        {currencySymbol}{lastMonthStats.data?.totalIncome.toFixed(2) || '0.00'}
+                                    <p className="text-base sm:text-lg font-semibold text-green-600">
+                                        {currencySymbol}{formatCurrency(lastMonthStats.data?.totalIncome || 0, currencyCode)}
                                     </p>
                                 </div>
                                 <div>
                                     <p className="text-xs text-gray-500">Expenses</p>
-                                    <p className="text-lg font-semibold text-red-600">
-                                        {currencySymbol}{lastMonthStats.data?.totalExpense.toFixed(2) || '0.00'}
+                                    <p className="text-base sm:text-lg font-semibold text-red-600">
+                                        {currencySymbol}{formatCurrency(lastMonthStats.data?.totalExpense || 0, currencyCode)}
                                     </p>
                                 </div>
-                                <div className="pt-3 border-t">
+                                <div className="pt-2 sm:pt-3 border-t">
                                     <p className="text-xs text-gray-500">Balance</p>
-                                    <p className={`text-lg font-semibold ${(lastMonthStats.data?.balance || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                        {currencySymbol}{lastMonthStats.data?.balance.toFixed(2) || '0.00'}
+                                    <p className={`text-base sm:text-lg font-semibold ${(lastMonthStats.data?.balance || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                        {currencySymbol}{formatCurrency(lastMonthStats.data?.balance || 0, currencyCode)}
                                     </p>
                                 </div>
                             </div>
                         </div>
 
                         {/* Year to Date */}
-                        <div className="bg-white shadow rounded-lg p-6">
-                            <h3 className="text-sm font-medium text-gray-500 mb-4">Year to Date</h3>
-                            <div className="space-y-3">
+                        <div className="bg-white shadow rounded-lg p-4 sm:p-6">
+                            <h3 className="text-sm font-medium text-gray-500 mb-3 sm:mb-4">Year to Date</h3>
+                            <div className="space-y-2 sm:space-y-3">
                                 <div>
                                     <p className="text-xs text-gray-500">Income</p>
-                                    <p className="text-lg font-semibold text-green-600">
-                                        {currencySymbol}{yearStats.data?.totalIncome.toFixed(2) || '0.00'}
+                                    <p className="text-base sm:text-lg font-semibold text-green-600">
+                                        {currencySymbol}{formatCurrency(yearStats.data?.totalIncome || 0, currencyCode)}
                                     </p>
                                 </div>
                                 <div>
                                     <p className="text-xs text-gray-500">Expenses</p>
-                                    <p className="text-lg font-semibold text-red-600">
-                                        {currencySymbol}{yearStats.data?.totalExpense.toFixed(2) || '0.00'}
+                                    <p className="text-base sm:text-lg font-semibold text-red-600">
+                                        {currencySymbol}{formatCurrency(yearStats.data?.totalExpense || 0, currencyCode)}
                                     </p>
                                 </div>
-                                <div className="pt-3 border-t">
+                                <div className="pt-2 sm:pt-3 border-t">
                                     <p className="text-xs text-gray-500">Balance</p>
-                                    <p className={`text-lg font-semibold ${(yearStats.data?.balance || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                        {currencySymbol}{yearStats.data?.balance.toFixed(2) || '0.00'}
+                                    <p className={`text-base sm:text-lg font-semibold ${(yearStats.data?.balance || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                        {currencySymbol}{formatCurrency(yearStats.data?.balance || 0, currencyCode)}
                                     </p>
                                 </div>
                             </div>
@@ -132,19 +134,27 @@ export default async function ReportsPage() {
                     </div>
 
                     {/* Charts */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <div className="bg-white shadow rounded-lg p-6">
-                            <h3 className="text-lg font-medium text-gray-900 mb-4">This Month - Expenses by Category</h3>
-                            <ExpenseByCategory data={currentMonthData.data || []} currencySymbol={currencySymbol} />
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                        <div className="bg-white shadow rounded-lg p-4 sm:p-6">
+                            <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-3 sm:mb-4">This Month - Expenses by Category</h3>
+                            <ExpenseByCategory
+                                data={currentMonthData.data || []}
+                                currencySymbol={currencySymbol}
+                                currencyCode={currencyCode}
+                            />
                         </div>
 
-                        <div className="bg-white shadow rounded-lg p-6">
-                            <h3 className="text-lg font-medium text-gray-900 mb-4">Year to Date - Expenses by Category</h3>
-                            <ExpenseByCategory data={yearData.data || []} currencySymbol={currencySymbol} />
+                        <div className="bg-white shadow rounded-lg p-4 sm:p-6">
+                            <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-3 sm:mb-4">Year to Date - Expenses by Category</h3>
+                            <ExpenseByCategory
+                                data={yearData.data || []}
+                                currencySymbol={currencySymbol}
+                                currencyCode={currencyCode}
+                            />
                         </div>
                     </div>
                 </div>
             </div>
-        </DashboardLayout>
-    )
+        </ DashboardLayout>
+            )
 }

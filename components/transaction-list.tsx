@@ -6,18 +6,22 @@ import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline'
 import { IconRenderer } from '@/components/icon-helper'
 import { deleteTransaction, type TransactionWithCategory } from '@/app/actions/transactions'
 import { getUserSettings } from '@/app/actions/settings'
-import { getCurrencyInfo } from '@/lib/currencies'
+import { getCurrencyInfo, formatCurrency } from '@/lib/currencies'
 import toast from 'react-hot-toast'
 
 interface TransactionListProps {
     transactions: TransactionWithCategory[]
     onEdit: (transaction: TransactionWithCategory) => void
     onUpdate: () => void
+    selectedIds?: string[]
+    onSelectOne?: (id: string) => void
 }
 
-export function TransactionList({ transactions, onEdit, onUpdate }: TransactionListProps) {
+export function TransactionList({ transactions, onEdit, onUpdate, selectedIds = [], onSelectOne }: TransactionListProps) {
     const [deleting, setDeleting] = useState<string | null>(null)
     const [currencySymbol, setCurrencySymbol] = useState('Dh')
+    const [currencyCode, setCurrencyCode] = useState('AED')
+    const [expandedId, setExpandedId] = useState<string | null>(null)
 
     useEffect(() => {
         loadCurrency()
@@ -28,6 +32,7 @@ export function TransactionList({ transactions, onEdit, onUpdate }: TransactionL
         if (data) {
             const currency = await getCurrencyInfo(data.currency || 'USD')
             setCurrencySymbol(currency.symbol)
+            setCurrencyCode(data.currency || 'USD')
         }
     }
 
@@ -46,6 +51,10 @@ export function TransactionList({ transactions, onEdit, onUpdate }: TransactionL
             onUpdate()
         }
         setDeleting(null)
+    }
+
+    function handleToggleExpand(id: string) {
+        setExpandedId(prev => prev === id ? null : id)
     }
 
     if (transactions.length === 0) {
@@ -77,63 +86,68 @@ export function TransactionList({ transactions, onEdit, onUpdate }: TransactionL
             <ul className="divide-y divide-slate-100">
                 {transactions.map((transaction) => (
                     <li key={transaction.id}>
-                        <div className="px-5 py-4 sm:px-6 hover:bg-slate-50/80 transition-all duration-200">
-                            <div className="flex items-center justify-between">
-                                <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-3">
-                                        <div
-                                            className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center shadow-sm"
-                                            style={{ backgroundColor: (transaction.category?.color || '#6b7280') + '20' }}
-                                        >
-                                            {transaction.category ? (
-                                                <IconRenderer
-                                                    icon={transaction.category.icon}
-                                                    className="h-5 w-5"
-                                                    style={{ color: transaction.category.color }}
-                                                />
-                                            ) : (
+                        <div
+                            className={`px-4 py-4 sm:px-6 hover:bg-slate-50/80 transition-all duration-200 ${expandedId === transaction.id ? 'bg-slate-50' : ''}`}
+                        >
+                            <div className="flex flex-col gap-3">
+                                <div className="flex items-center gap-3">
+                                    {/* Selection checkbox */}
+                                    {onSelectOne && (
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedIds.includes(transaction.id)}
+                                            onChange={() => onSelectOne(transaction.id)}
+                                            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                        />
+                                    )}
+                                    <div
+                                        className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center shadow-sm"
+                                        style={{ backgroundColor: (transaction.category?.color || '#6b7280') + '20' }}
+                                    >
+                                        {transaction.category ? (
+                                            <IconRenderer
+                                                icon={transaction.category.icon}
+                                                className="h-5 w-5"
+                                                style={{ color: transaction.category.color }}
+                                            />
+                                        ) : (
+                                            <span
+                                                className="text-lg"
+                                                style={{ color: '#6b7280' }}
+                                            >
+                                                {transaction.type === 'income' ? '↑' : '↓'}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <div className="flex-1 min-w-0 cursor-pointer" onClick={() => handleToggleExpand(transaction.id)}>
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            <p className="text-sm font-medium text-gray-900 truncate">
+                                                {transaction.description || 'No description'}
+                                            </p>
+                                            {transaction.category && (
                                                 <span
-                                                    className="text-lg"
-                                                    style={{ color: '#6b7280' }}
+                                                    className="sm:inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
+                                                    style={{
+                                                        backgroundColor: transaction.category.color + '20',
+                                                        color: transaction.category.color,
+                                                    }}
                                                 >
-                                                    {transaction.type === 'income' ? '↑' : '↓'}
+                                                    {transaction.category.name}
                                                 </span>
                                             )}
                                         </div>
-                                        <div className="flex-1">
-                                            <div className="flex items-center gap-2">
-                                                <p className="text-sm font-medium text-gray-900 truncate">
-                                                    {transaction.description || 'No description'}
-                                                </p>
-                                                {transaction.category && (
-                                                    <span
-                                                        className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
-                                                        style={{
-                                                            backgroundColor: transaction.category.color + '20',
-                                                            color: transaction.category.color,
-                                                        }}
-                                                    >
-                                                        {transaction.category.name}
-                                                    </span>
-                                                )}
-                                            </div>
-                                            <p className="text-sm text-gray-500">
-                                                {format(new Date(transaction.date), 'MMM dd, yyyy')}
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-4">
-                                    <div className="text-right">
                                         <p
                                             className={`text-sm font-semibold ${transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
                                                 }`}
                                         >
                                             {transaction.type === 'income' ? '+' : '-'}{currencySymbol}
-                                            {Number(transaction.amount).toFixed(2)}
+                                            {formatCurrency(Number(transaction.amount), currencyCode)}
+                                        </p>
+                                        <p className="text-sm text-gray-500">
+                                            {format(new Date(transaction.date), 'MMM dd, yyyy HH:mm')}
                                         </p>
                                     </div>
-                                    <div className="flex gap-2">
+                                    <div className="flex items-center gap-2">
                                         <button
                                             onClick={() => onEdit(transaction)}
                                             className="p-2 rounded-lg hover:bg-slate-100 transition-all duration-200"
@@ -151,6 +165,30 @@ export function TransactionList({ transactions, onEdit, onUpdate }: TransactionL
                                         </button>
                                     </div>
                                 </div>
+                                {/* Expanded details */}
+                                {expandedId === transaction.id && (
+                                    <div className="mt-3 pt-3 border-t border-slate-100 text-sm">
+                                        <div className="grid grid-cols-2 gap-3 text-gray-600">
+                                            <div>
+                                                <span className="font-medium text-gray-900">Type:</span> {transaction.type === 'income' ? 'Income' : 'Expense'}
+                                            </div>
+                                            <div>
+                                                <span className="font-medium text-gray-900">Category:</span> {transaction.category?.name || 'Uncategorized'}
+                                            </div>
+                                            <div>
+                                                <span className="font-medium text-gray-900">Date:</span> {format(new Date(transaction.date), 'MMMM dd, yyyy')}
+                                            </div>
+                                            <div>
+                                                <span className="font-medium text-gray-900">Time:</span> {format(new Date(transaction.date), 'hh:mm a')}
+                                            </div>
+                                        </div>
+                                        {transaction.description && (
+                                            <div className="mt-2">
+                                                <span className="font-medium text-gray-900">Notes:</span> {transaction.description}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </li>

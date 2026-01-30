@@ -1,6 +1,7 @@
 'use client'
 
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts'
+import { formatCurrency } from '@/lib/currencies'
 
 interface ExpenseByCategoryProps {
     data: Array<{
@@ -9,9 +10,10 @@ interface ExpenseByCategoryProps {
         color: string
     }>
     currencySymbol?: string
+    currencyCode?: string
 }
 
-export function ExpenseByCategory({ data, currencySymbol = '$' }: ExpenseByCategoryProps) {
+export function ExpenseByCategory({ data, currencySymbol = '$', currencyCode = 'USD' }: ExpenseByCategoryProps) {
     if (!data || data.length === 0) {
         return (
             <div className="flex items-center justify-center h-64 text-gray-500">
@@ -37,7 +39,7 @@ export function ExpenseByCategory({ data, currencySymbol = '$' }: ExpenseByCateg
                         <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                 </Pie>
-                <Tooltip formatter={(value: number | undefined) => `${currencySymbol}${value!.toFixed(2)}`} />
+                <Tooltip formatter={(value: number | undefined) => `${currencySymbol}${formatCurrency(value!, currencyCode)}`} />
                 <Legend />
             </PieChart>
         </ResponsiveContainer>

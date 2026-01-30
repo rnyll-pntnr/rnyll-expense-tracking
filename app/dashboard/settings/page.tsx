@@ -18,7 +18,7 @@ export default async function SettingsPage() {
     const userName = user.user_metadata?.name || ''
 
     return (
-        <DashboardLayout userEmail={user.email}>
+        <DashboardLayout userEmail={user.email} userName={user.user_metadata.name}>
             <SettingsClient userId={user.id} userEmail={user.email || ''} userName={userName} currency={currency} />
         </DashboardLayout>
     )
