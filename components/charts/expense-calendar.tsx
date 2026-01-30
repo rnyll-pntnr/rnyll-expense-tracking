@@ -19,11 +19,11 @@ const formatCurrency = (amount: number, currencySymbol: string = '$'): string =>
 const getIntensityClass = (amount: number, maxAmount: number): string => {
     if (amount === 0) return 'bg-gray-50'
     const ratio = amount / maxAmount
-    if (ratio <= 0.1) return 'bg-red-100'
-    if (ratio <= 0.25) return 'bg-red-200'
-    if (ratio <= 0.5) return 'bg-red-300'
-    if (ratio <= 0.75) return 'bg-red-400'
-    return 'bg-red-500'
+    if (ratio <= 0.1) return 'bg-purple-100'
+    if (ratio <= 0.25) return 'bg-purple-200'
+    if (ratio <= 0.5) return 'bg-purple-300'
+    if (ratio <= 0.75) return 'bg-purple-400'
+    return 'bg-purple-500'
 }
 
 export function ExpenseCalendar({ dailyExpenses, currentMonth: initialMonth, currencySymbol = '$' }: ExpenseCalendarProps) {
@@ -117,11 +117,11 @@ export function ExpenseCalendar({ dailyExpenses, currentMonth: initialMonth, cur
             <div className="mt-4 flex items-center justify-center space-x-4">
                 <span className="text-xs text-gray-500">Less</span>
                 <div className="flex space-x-1">
-                    <div className="w-4 h-4 rounded bg-red-100"></div>
-                    <div className="w-4 h-4 rounded bg-red-200"></div>
-                    <div className="w-4 h-4 rounded bg-red-300"></div>
-                    <div className="w-4 h-4 rounded bg-red-400"></div>
-                    <div className="w-4 h-4 rounded bg-red-500"></div>
+                    <div className="w-4 h-4 rounded bg-purple-100"></div>
+                    <div className="w-4 h-4 rounded bg-purple-200"></div>
+                    <div className="w-4 h-4 rounded bg-purple-300"></div>
+                    <div className="w-4 h-4 rounded bg-purple-400"></div>
+                    <div className="w-4 h-4 rounded bg-purple-500"></div>
                 </div>
                 <span className="text-xs text-gray-500">More</span>
             </div>

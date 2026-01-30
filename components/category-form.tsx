@@ -215,13 +215,13 @@ export function CategoryForm({ isOpen, onClose, category, onSuccess }: CategoryF
                                         <label className="block text-sm font-medium text-gray-700 mb-1">
                                             Icon
                                         </label>
-                                        <div className="flex flex-wrap gap-2">
+                                        <div className="flex flex-wrap gap-4">
                                             {ICONS.map(({ name: iconName, Icon }) => (
                                                 <button
                                                     key={iconName}
                                                     type="button"
                                                     onClick={() => setIcon(iconName)}
-                                                    className={`w-10 h-10 rounded-xl border-2 flex items-center justify-center text-white transition-all duration-200 ${icon === iconName ? 'border-gray-900 scale-105' : 'border-transparent hover:scale-105'}`}
+                                                    className={`w-13 h-13 rounded-xl border-2 flex items-center justify-center text-white transition-all duration-200 ${icon === iconName ? 'border-gray-900 scale-105' : 'border-transparent hover:scale-105'}`}
                                                     style={{ backgroundColor: color }}
                                                 >
                                                     <Icon className="h-5 w-5" />
