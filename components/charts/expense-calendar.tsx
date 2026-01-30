@@ -1,12 +1,13 @@
 'use client'
 
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, addMonths, subMonths, startOfWeek, endOfWeek } from 'date-fns'
-import { useState } from 'react'
 
 interface ExpenseCalendarProps {
     dailyExpenses: Record<string, number>
     currentMonth: Date
     currencySymbol?: string
+    onPreviousMonth?: () => void
+    onNextMonth?: () => void
 }
 
 const formatCurrency = (amount: number, currencySymbol: string = '$'): string => {
@@ -26,9 +27,13 @@ const getIntensityClass = (amount: number, maxAmount: number): string => {
     return 'bg-purple-500'
 }
 
-export function ExpenseCalendar({ dailyExpenses, currentMonth: initialMonth, currencySymbol = '$' }: ExpenseCalendarProps) {
-    const [currentMonth, setCurrentMonth] = useState(initialMonth)
-
+export function ExpenseCalendar({ 
+    dailyExpenses, 
+    currentMonth, 
+    currencySymbol = '$',
+    onPreviousMonth = () => {},
+    onNextMonth = () => {}
+}: ExpenseCalendarProps) {
     const monthStart = startOfMonth(currentMonth)
     const monthEnd = endOfMonth(currentMonth)
     const calendarStart = startOfWeek(monthStart)
@@ -38,9 +43,6 @@ export function ExpenseCalendar({ dailyExpenses, currentMonth: initialMonth, cur
 
     const maxExpense = Math.max(...Object.values(dailyExpenses), 1)
 
-    const goToPreviousMonth = () => setCurrentMonth(subMonths(currentMonth, 1))
-    const goToNextMonth = () => setCurrentMonth(addMonths(currentMonth, 1))
-
     const today = new Date()
 
     return (
@@ -49,18 +51,18 @@ export function ExpenseCalendar({ dailyExpenses, currentMonth: initialMonth, cur
                 <h3 className="text-lg font-medium text-gray-900">Daily Expenses</h3>
                 <div className="flex items-center space-x-2">
                     <button
-                        onClick={goToPreviousMonth}
+                        onClick={onPreviousMonth}
                         className="p-1 hover:bg-gray-100 rounded-md transition-colors"
                     >
                         <svg className="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                         </svg>
                     </button>
-                    <span className="text-sm font-medium text-gray-700 min-w-[100px] text-center">
+                    <span className="text-sm font-medium text-gray-700 min-w-25 text-center">
                         {format(currentMonth, 'MMMM yyyy')}
                     </span>
                     <button
-                        onClick={goToNextMonth}
+                        onClick={onNextMonth}
                         className="p-1 hover:bg-gray-100 rounded-md transition-colors"
                     >
                         <svg className="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
