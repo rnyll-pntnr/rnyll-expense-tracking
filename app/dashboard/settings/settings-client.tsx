@@ -1,21 +1,22 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { PlusIcon, TrashIcon, PencilIcon } from '@heroicons/react/24/outline'
+import { useState, useEffect, useRef } from 'react'
+import { PlusIcon, TrashIcon, PencilIcon, UserIcon, LockClosedIcon } from '@heroicons/react/24/outline'
 import { CategoryForm } from '@/components/category-form'
 import { IconRenderer } from '@/components/icon-helper'
 import { getCategories, deleteCategory, type Category } from '@/app/actions/categories'
-import { updateUserSettings } from '@/app/actions/settings'
+import { updateUserSettings, updateUserName, updateUserPassword } from '@/app/actions/settings'
 import { CURRENCIES } from '@/lib/currencies'
 import toast from 'react-hot-toast'
 
 interface SettingsClientProps {
     userId: string
     userEmail: string
+    userName: string
     currency: string
 }
 
-export function SettingsClient({ userId, userEmail, currency: initialCurrency }: SettingsClientProps) {
+export function SettingsClient({ userId, userEmail, userName, currency: initialCurrency }: SettingsClientProps) {
     const [isFormOpen, setIsFormOpen] = useState(false)
     const [editingCategory, setEditingCategory] = useState<Category | null>(null)
     const [categories, setCategories] = useState<Category[]>([])
@@ -23,6 +24,15 @@ export function SettingsClient({ userId, userEmail, currency: initialCurrency }:
     const [activeTab, setActiveTab] = useState<'profile' | 'categories' | 'preferences'>('categories')
     const [currency, setCurrency] = useState(initialCurrency)
     const [savingCurrency, setSavingCurrency] = useState(false)
+
+    // Form refs
+    const passwordFormRef = useRef<HTMLFormElement>(null)
+
+    // Profile form states
+    const [name, setName] = useState(userName)
+    const [savingName, setSavingName] = useState(false)
+    const [changingPassword, setChangingPassword] = useState(false)
+    const [passwordLoading, setPasswordLoading] = useState(false)
 
     useEffect(() => {
         loadCategories()
@@ -63,17 +73,70 @@ export function SettingsClient({ userId, userEmail, currency: initialCurrency }:
 
     async function handleCurrencyChange(newCurrency: string) {
         setSavingCurrency(true)
-        const formData = new FormData()
-        formData.set('currency', newCurrency)
+        try {
+            const formData = new FormData()
+            formData.set('currency', newCurrency)
 
-        const result = await updateUserSettings(formData)
-        if (result.error) {
-            toast.error(result.error)
-        } else {
-            setCurrency(newCurrency)
-            toast.success('Currency updated!')
+            const result = await updateUserSettings(formData)
+            if (result.error) {
+                toast.error(result.error)
+            } else {
+                setCurrency(newCurrency)
+                toast.success('Currency updated!')
+            }
+        } catch (error) {
+            console.error('Currency update error:', error)
+            toast.error('An unexpected error occurred. Please try again.')
+        } finally {
+            setSavingCurrency(false)
         }
-        setSavingCurrency(false)
+    }
+
+    async function handleNameUpdate(e: React.FormEvent<HTMLFormElement>) {
+        e.preventDefault()
+        setSavingName(true)
+
+        try {
+            const formData = new FormData(e.currentTarget)
+            const result = await updateUserName(formData)
+
+            if (result.error) {
+                toast.error(result.error)
+            } else {
+                toast.success('Name updated successfully!')
+            }
+        } catch (error) {
+            console.error('Name update error:', error)
+            toast.error('An unexpected error occurred. Please try again.')
+        } finally {
+            setSavingName(false)
+        }
+    }
+
+    async function handlePasswordChange(e: React.FormEvent<HTMLFormElement>) {
+        e.preventDefault()
+        setPasswordLoading(true)
+
+        try {
+            const formData = new FormData(e.currentTarget)
+            const result = await updateUserPassword(formData)
+
+            if (result.error) {
+                toast.error(result.error)
+            } else {
+                toast.success('Password updated successfully!')
+                // Use ref to reset form for reliability
+                if (passwordFormRef.current) {
+                    passwordFormRef.current.reset()
+                }
+                setChangingPassword(false)
+            }
+        } catch (error) {
+            console.error('Password update error:', error)
+            toast.error('An unexpected error occurred. Please try again.')
+        } finally {
+            setPasswordLoading(false)
+        }
     }
 
     const expenseCategories = categories.filter(c => c.type === 'expense')
@@ -125,29 +188,128 @@ export function SettingsClient({ userId, userEmail, currency: initialCurrency }:
                 </div>
 
                 {activeTab === 'profile' && (
-                    <div className="bg-white shadow rounded-lg divide-y divide-gray-200">
-                        <div className="p-6">
-                            <h3 className="text-lg font-medium leading-6 text-gray-900">Profile Information</h3>
-                            <p className="mt-1 text-sm text-gray-500">
-                                Update your account profile information and email address.
-                            </p>
-                            <div className="mt-6">
-                                <div className="grid grid-cols-1 gap-6">
-                                    <div>
-                                        <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                                            Email address
-                                        </label>
-                                        <input
-                                            type="email"
-                                            name="email"
-                                            id="email"
-                                            value={userEmail}
-                                            disabled
-                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm bg-gray-50 sm:text-sm px-3 py-2"
-                                        />
-                                    </div>
+                    <div className="space-y-6">
+                        {/* Profile Information Card */}
+                        <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-100 shadow-lg shadow-slate-200/50 p-6">
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-100 to-violet-100 flex items-center justify-center">
+                                    <UserIcon className="h-5 w-5 text-indigo-600" />
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-semibold text-gray-900">Profile Information</h3>
+                                    <p className="text-sm text-gray-500">Update your account details</p>
                                 </div>
                             </div>
+
+                            <form onSubmit={handleNameUpdate} className="space-y-4">
+                                <div>
+                                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                                        Full Name
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="name"
+                                        id="name"
+                                        defaultValue={name}
+                                        placeholder="Enter your name"
+                                        className="block w-full px-3 py-2.5 border border-gray-300 rounded-xl bg-white shadow-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 sm:text-sm transition-all duration-200"
+                                    />
+                                </div>
+                                <div>
+                                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                                        Email address
+                                    </label>
+                                    <input
+                                        type="email"
+                                        name="email"
+                                        id="email"
+                                        value={userEmail}
+                                        disabled
+                                        className="block w-full px-3 py-2.5 border border-gray-300 rounded-xl bg-slate-50 shadow-sm sm:text-sm cursor-not-allowed"
+                                    />
+                                    <p className="mt-1 text-xs text-gray-500">Email cannot be changed</p>
+                                </div>
+                                <button
+                                    type="submit"
+                                    disabled={savingName}
+                                    className="px-4 py-2.5 border border-transparent rounded-xl shadow-lg shadow-indigo-200 text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                                >
+                                    {savingName ? 'Saving...' : 'Save Changes'}
+                                </button>
+                            </form>
+                        </div>
+
+                        {/* Password Change Card */}
+                        <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-100 shadow-lg shadow-slate-200/50 p-6">
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-100 to-orange-100 flex items-center justify-center">
+                                    <LockClosedIcon className="h-5 w-5 text-red-600" />
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-semibold text-gray-900">Change Password</h3>
+                                    <p className="text-sm text-gray-500">Update your password</p>
+                                </div>
+                            </div>
+
+                            {!changingPassword ? (
+                                <button
+                                    onClick={() => setChangingPassword(true)}
+                                    className="px-4 py-2.5 border border-gray-300 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-all duration-200"
+                                >
+                                    Change Password
+                                </button>
+                            ) : (
+                                <form
+                                    ref={passwordFormRef}
+                                    onSubmit={handlePasswordChange}
+                                    className="space-y-4"
+                                >
+                                    <div>
+                                        <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                                            New Password
+                                        </label>
+                                        <input
+                                            type="password"
+                                            name="password"
+                                            id="password"
+                                            required
+                                            minLength={6}
+                                            className="block w-full px-3 py-2.5 border border-gray-300 rounded-xl bg-white shadow-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 sm:text-sm transition-all duration-200"
+                                            placeholder="Enter new password"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
+                                            Confirm New Password
+                                        </label>
+                                        <input
+                                            type="password"
+                                            name="confirmPassword"
+                                            id="confirmPassword"
+                                            required
+                                            minLength={6}
+                                            className="block w-full px-3 py-2.5 border border-gray-300 rounded-xl bg-white shadow-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 sm:text-sm transition-all duration-200"
+                                            placeholder="Confirm new password"
+                                        />
+                                    </div>
+                                    <div className="flex gap-3">
+                                        <button
+                                            type="button"
+                                            onClick={() => setChangingPassword(false)}
+                                            className="px-4 py-2.5 border border-gray-300 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-all duration-200"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            type="submit"
+                                            disabled={passwordLoading}
+                                            className="px-4 py-2.5 border border-transparent rounded-xl shadow-lg shadow-red-200 text-sm font-semibold text-white bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                                        >
+                                            {passwordLoading ? 'Updating...' : 'Update Password'}
+                                        </button>
+                                    </div>
+                                </form>
+                            )}
                         </div>
                     </div>
                 )}

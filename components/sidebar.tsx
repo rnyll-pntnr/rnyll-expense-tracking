@@ -24,15 +24,10 @@ const navigation = [
     { name: 'Settings', href: '/dashboard/settings', icon: Cog6ToothIcon },
 ]
 
-export function Sidebar({ userEmail }: { userEmail?: string }) {
+export function Sidebar({ userEmail, userName }: { userEmail?: string, userName?: string }) {
     const [sidebarOpen, setSidebarOpen] = useState(false)
     const { collapsed, toggle } = useSidebar()
     const pathname = usePathname()
-    const [mounted, setMounted] = useState(false)
-
-    useEffect(() => {
-        setMounted(true)
-    }, [])
 
     const isActive = (href: string) => {
         if (href === '/dashboard') {
@@ -40,9 +35,6 @@ export function Sidebar({ userEmail }: { userEmail?: string }) {
         }
         return pathname.startsWith(href)
     }
-
-    // Prevent hydration mismatch
-    const displayCollapsed = mounted ? collapsed : false
 
     return (
         <>
@@ -105,7 +97,7 @@ export function Sidebar({ userEmail }: { userEmail?: string }) {
                         {userEmail && (
                             <div className="mb-3 p-3 bg-slate-50 rounded-xl">
                                 <p className="text-xs text-slate-500">Signed in as</p>
-                                <p className="text-sm font-medium text-slate-900 truncate">{userEmail}</p>
+                                <p className="text-sm font-medium text-slate-900 truncate">{userName ?? userEmail}</p>
                             </div>
                         )}
                         <form action={signout}>
@@ -122,11 +114,11 @@ export function Sidebar({ userEmail }: { userEmail?: string }) {
             </div>
 
             {/* Desktop sidebar */}
-            <div className={`hidden lg:flex lg:flex-col bg-white/95 backdrop-blur-sm border-r border-slate-200 shadow-xl shadow-slate-200/50 transition-all duration-300 fixed inset-y-0 left-0 ${displayCollapsed ? 'w-20' : 'w-72'}`}>
+            <div className={`hidden lg:flex lg:flex-col bg-white/95 backdrop-blur-sm border-r border-slate-200 shadow-xl shadow-slate-200/50 transition-all duration-300 fixed inset-y-0 left-0 ${collapsed ? 'w-20' : 'w-72'}`}>
                 <div className="flex flex-col flex-grow overflow-y-auto">
                     {/* Desktop header */}
-                    <div className={`flex h-16 items-center border-b border-slate-100 ${displayCollapsed ? 'justify-center px-2' : 'px-4 gap-3'}`}>
-                        {!displayCollapsed && (
+                    <div className={`flex h-16 items-center border-b border-slate-100 ${collapsed ? 'justify-center px-2' : 'px-4 gap-3'}`}>
+                        {!collapsed && (
                             <>
                                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-200">
                                     <span className="text-white font-bold text-lg">E</span>
@@ -134,7 +126,7 @@ export function Sidebar({ userEmail }: { userEmail?: string }) {
                                 <h1 className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">ExpenseTracker</h1>
                             </>
                         )}
-                        {displayCollapsed && (
+                        {collapsed && (
                             <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-200">
                                 <span className="text-white font-bold text-lg">E</span>
                             </div>
@@ -152,14 +144,14 @@ export function Sidebar({ userEmail }: { userEmail?: string }) {
                                     className={`group flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${active
                                         ? 'bg-gradient-to-r from-indigo-50 to-violet-50 text-indigo-600 shadow-sm'
                                         : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
-                                        } ${displayCollapsed ? 'justify-center' : ''}`}
-                                    title={displayCollapsed ? item.name : undefined}
+                                        } ${collapsed ? 'justify-center' : ''}`}
+                                    title={collapsed ? item.name : undefined}
                                 >
                                     <item.icon
                                         className={`h-5 w-5 flex-shrink-0 ${active ? 'text-indigo-600' : 'text-slate-400 group-hover:text-slate-600'
                                             }`}
                                     />
-                                    {!displayCollapsed && item.name}
+                                    {!collapsed && item.name}
                                 </Link>
                             )
                         })}
@@ -168,11 +160,11 @@ export function Sidebar({ userEmail }: { userEmail?: string }) {
                     {/* Desktop user section */}
                     <div className="border-t border-slate-100 p-4">
                         <div>
-                            {displayCollapsed ? (
+                            {collapsed ? (
                                 <>
                                     {userEmail && (
-                                        <div className="text-xs text-slate-500 truncate max-w-[60px] text-center" title={userEmail}>
-                                            {userEmail.split('@')[0]}
+                                        <div className="text-xs text-slate-500 truncate max-w-[60px] text-center" title={userName ?? userEmail}>
+                                            {userName?.split(' ')[0] ?? userEmail.split('@')[0]}
                                         </div>
                                     )}
                                     <form action={signout}>
@@ -192,7 +184,7 @@ export function Sidebar({ userEmail }: { userEmail?: string }) {
                                             {userEmail && (
                                                 <div>
                                                     <p className="text-xs text-slate-500">Signed in as</p>
-                                                    <p className="text-sm font-medium text-slate-900 truncate">{userEmail}</p>
+                                                    <p className="text-sm font-medium text-slate-900 truncate">{userName ?? userEmail}</p>
                                                 </div>
                                             )}
                                         </div>
@@ -216,9 +208,9 @@ export function Sidebar({ userEmail }: { userEmail?: string }) {
                 <button
                     onClick={toggle}
                     className="absolute -right-3 top-20 w-8 h-8 bg-white border border-slate-200 rounded-full shadow-lg shadow-slate-200/50 flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all duration-200 hidden lg:flex"
-                    title={displayCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                    title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
                 >
-                    {displayCollapsed ? (
+                    {collapsed ? (
                         <ChevronDoubleRightIcon className="h-4 w-4" />
                     ) : (
                         <ChevronDoubleLeftIcon className="h-4 w-4" />

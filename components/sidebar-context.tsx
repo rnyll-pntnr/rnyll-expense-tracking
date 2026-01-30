@@ -10,15 +10,19 @@ interface SidebarContextType {
 const SidebarContext = createContext<SidebarContextType | undefined>(undefined)
 
 export function SidebarProvider({ children }: { children: ReactNode }) {
-    const [collapsed, setCollapsed] = useState(false)
-    const [mounted, setMounted] = useState(false)
+    // Initialize from localStorage on mount to prevent hydration mismatch
+    const [collapsed, setCollapsed] = useState(true) // Default to collapsed
+    const [isInitialized, setIsInitialized] = useState(false)
 
     useEffect(() => {
-        setMounted(true)
         const saved = localStorage.getItem('sidebarCollapsed')
-        if (saved) {
+        if (saved !== null) {
             setCollapsed(JSON.parse(saved))
+        } else {
+            // Default to expanded if no saved preference
+            setCollapsed(false)
         }
+        setIsInitialized(true)
     }, [])
 
     const toggle = () => {
@@ -29,17 +33,14 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
         })
     }
 
-    // Prevent hydration mismatch
-    if (!mounted) {
-        return (
-            <SidebarContext.Provider value={{ collapsed: false, toggle }}>
-                {children}
-            </SidebarContext.Provider>
-        )
+    // Use collapsed state if initialized, otherwise use current state
+    const contextValue = {
+        collapsed: isInitialized ? collapsed : false,
+        toggle
     }
 
     return (
-        <SidebarContext.Provider value={{ collapsed, toggle }}>
+        <SidebarContext.Provider value={contextValue}>
             {children}
         </SidebarContext.Provider>
     )

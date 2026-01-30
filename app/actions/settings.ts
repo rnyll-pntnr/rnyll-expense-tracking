@@ -63,3 +63,55 @@ export async function updateUserSettings(formData: FormData) {
     revalidatePath('/dashboard/settings')
     return { data, error: null }
 }
+
+export async function updateUserName(formData: FormData) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+        return { error: 'Unauthorized' }
+    }
+
+    const name = formData.get('name') as string
+
+    const { error } = await supabase.auth.updateUser({
+        data: { name },
+    })
+
+    if (error) {
+        return { error: error.message }
+    }
+
+    revalidatePath('/dashboard/settings')
+    return { error: null }
+}
+
+export async function updateUserPassword(formData: FormData) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+        return { error: 'Unauthorized' }
+    }
+
+    const newPassword = formData.get('password') as string
+    const confirmPassword = formData.get('confirmPassword') as string
+
+    if (newPassword !== confirmPassword) {
+        return { error: 'Passwords do not match' }
+    }
+
+    if (newPassword.length < 6) {
+        return { error: 'Password must be at least 6 characters long' }
+    }
+
+    const { error } = await supabase.auth.updateUser({
+        password: newPassword,
+    })
+
+    if (error) {
+        return { error: error.message }
+    }
+
+    return { error: null }
+}

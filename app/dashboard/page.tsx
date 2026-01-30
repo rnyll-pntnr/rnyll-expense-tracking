@@ -41,7 +41,7 @@ export default async function DashboardPage() {
     const avgDaily = daysInMonth > 0 ? stats.totalExpense / daysInMonth : 0
 
     return (
-        <DashboardLayout userEmail={user.email}>
+        <DashboardLayout userEmail={user.email} userName={user.user_metadata.name}>
             <div className="p-6 lg:p-8">
                 <div className="mx-auto max-w-8xl">
                     <div className="mb-8">

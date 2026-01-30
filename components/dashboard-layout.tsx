@@ -2,33 +2,28 @@
 
 import { Sidebar } from './sidebar'
 import { SidebarProvider, useSidebar } from './sidebar-context'
-import { ReactNode, useEffect, useState } from 'react'
+import { ReactNode } from 'react'
 
 function DashboardLayoutContent({
     children,
     userEmail,
+    userName,
 }: {
     children: ReactNode
     userEmail?: string
+    userName?: string
 }) {
     const { collapsed } = useSidebar()
-    const [mounted, setMounted] = useState(false)
-
-    useEffect(() => {
-        setMounted(true)
-    }, [])
-
-    const displayCollapsed = mounted ? collapsed : false
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200">
-            <Sidebar userEmail={userEmail} />
+            <Sidebar userEmail={userEmail} userName={userName} />
 
             {/* Main content - with proper responsive padding */}
             <div className={`
                 transition-all duration-300
                 pt-16 lg:pt-0
-                ${displayCollapsed ? 'lg:pl-20' : 'lg:pl-72'}
+                ${collapsed ? 'lg:pl-20' : 'lg:pl-72'}
             `}>
                 <main className="min-h-screen">
                     {children}
@@ -41,13 +36,15 @@ function DashboardLayoutContent({
 export function DashboardLayout({
     children,
     userEmail,
+    userName,
 }: {
     children: ReactNode
     userEmail?: string
+    userName?: string
 }) {
     return (
         <SidebarProvider>
-            <DashboardLayoutContent userEmail={userEmail}>
+            <DashboardLayoutContent userEmail={userEmail} userName={userName}>
                 {children}
             </DashboardLayoutContent>
         </SidebarProvider>
