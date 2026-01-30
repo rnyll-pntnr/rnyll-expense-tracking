@@ -50,37 +50,39 @@ export function TransactionList({ transactions, onEdit, onUpdate }: TransactionL
 
     if (transactions.length === 0) {
         return (
-            <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
-                <svg
-                    className="mx-auto h-12 w-12 text-gray-400"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                >
-                    <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                    />
-                </svg>
-                <h3 className="mt-2 text-sm font-medium text-gray-900">No transactions</h3>
-                <p className="mt-1 text-sm text-gray-500">Get started by adding your first transaction.</p>
+            <div className="text-center py-12 bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-100 shadow-lg shadow-slate-200/50">
+                <div className="mx-auto h-16 w-16 bg-slate-100 rounded-2xl flex items-center justify-center mb-4">
+                    <svg
+                        className="h-8 w-8 text-slate-400"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                    >
+                        <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                        />
+                    </svg>
+                </div>
+                <h3 className="text-lg font-medium text-gray-900">No transactions yet</h3>
+                <p className="mt-2 text-sm text-gray-500">Get started by adding your first transaction.</p>
             </div>
         )
     }
 
     return (
-        <div className="bg-white shadow overflow-hidden sm:rounded-md">
-            <ul className="divide-y divide-gray-200">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-100 shadow-lg shadow-slate-200/50 overflow-hidden">
+            <ul className="divide-y divide-slate-100">
                 {transactions.map((transaction) => (
                     <li key={transaction.id}>
-                        <div className="px-4 py-4 sm:px-6 hover:bg-gray-50 transition-colors">
+                        <div className="px-5 py-4 sm:px-6 hover:bg-slate-50/80 transition-all duration-200">
                             <div className="flex items-center justify-between">
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-3">
                                         <div
-                                            className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center"
+                                            className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center shadow-sm"
                                             style={{ backgroundColor: (transaction.category?.color || '#6b7280') + '20' }}
                                         >
                                             {transaction.category ? (
@@ -134,18 +136,18 @@ export function TransactionList({ transactions, onEdit, onUpdate }: TransactionL
                                     <div className="flex gap-2">
                                         <button
                                             onClick={() => onEdit(transaction)}
-                                            className="p-1 rounded hover:bg-gray-200 transition-colors"
+                                            className="p-2 rounded-lg hover:bg-slate-100 transition-all duration-200"
                                             title="Edit"
                                         >
-                                            <PencilIcon className="h-4 w-4 text-gray-600" />
+                                            <PencilIcon className="h-4 w-4 text-slate-600" />
                                         </button>
                                         <button
                                             onClick={() => handleDelete(transaction.id)}
                                             disabled={deleting === transaction.id}
-                                            className="p-1 rounded hover:bg-red-100 transition-colors disabled:opacity-50"
+                                            className="p-2 rounded-lg hover:bg-red-50 transition-all duration-200 disabled:opacity-50"
                                             title="Delete"
                                         >
-                                            <TrashIcon className="h-4 w-4 text-red-600" />
+                                            <TrashIcon className="h-4 w-4 text-red-500" />
                                         </button>
                                     </div>
                                 </div>

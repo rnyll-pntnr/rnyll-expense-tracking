@@ -106,7 +106,7 @@ export function TransactionForm({ isOpen, onClose, transaction, onSuccess }: Tra
                             leaveFrom="opacity-100 scale-100"
                             leaveTo="opacity-0 scale-95"
                         >
-                            <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+                            <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white/95 backdrop-blur-sm p-6 text-left align-middle shadow-xl shadow-slate-200/50 border border-slate-100 transition-all">
                                 <div className="flex items-center justify-between mb-4">
                                     <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-gray-900">
                                         {transaction ? 'Edit Transaction' : 'Add Transaction'}
@@ -129,9 +129,9 @@ export function TransactionForm({ isOpen, onClose, transaction, onSuccess }: Tra
                                             <button
                                                 type="button"
                                                 onClick={() => setType('expense')}
-                                                className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${type === 'expense'
-                                                    ? 'bg-red-600 text-white'
-                                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                                className={`flex-1 py-2.5 px-4 rounded-xl font-medium transition-all duration-200 ${type === 'expense'
+                                                    ? 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg shadow-red-200'
+                                                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                                                     }`}
                                             >
                                                 Expense
@@ -139,9 +139,9 @@ export function TransactionForm({ isOpen, onClose, transaction, onSuccess }: Tra
                                             <button
                                                 type="button"
                                                 onClick={() => setType('income')}
-                                                className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${type === 'income'
-                                                    ? 'bg-green-600 text-white'
-                                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                                className={`flex-1 py-2.5 px-4 rounded-xl font-medium transition-all duration-200 ${type === 'income'
+                                                    ? 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg shadow-green-200'
+                                                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                                                     }`}
                                             >
                                                 Income
@@ -155,7 +155,7 @@ export function TransactionForm({ isOpen, onClose, transaction, onSuccess }: Tra
                                             Amount
                                         </label>
                                         <div className="relative">
-                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">{currencySymbol}</span>
+                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">{currencySymbol}</span>
                                             <input
                                                 type="number"
                                                 name="amount"
@@ -164,7 +164,7 @@ export function TransactionForm({ isOpen, onClose, transaction, onSuccess }: Tra
                                                 min="0.01"
                                                 required
                                                 defaultValue={transaction?.amount}
-                                                className="block w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                                className="block w-full pl-8 pr-3 py-2.5 border border-gray-300 rounded-xl bg-white shadow-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 sm:text-sm transition-all duration-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
                                                 placeholder="0.00"
                                             />
                                         </div>
@@ -179,7 +179,7 @@ export function TransactionForm({ isOpen, onClose, transaction, onSuccess }: Tra
                                             name="category_id"
                                             id="category_id"
                                             defaultValue={transaction?.category_id || ''}
-                                            className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                            className="block w-full px-3 py-2.5 border border-gray-300 rounded-xl bg-white shadow-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 sm:text-sm transition-all duration-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
                                         >
                                             <option value="">No category</option>
                                             {categories.map((category) => (
@@ -201,7 +201,7 @@ export function TransactionForm({ isOpen, onClose, transaction, onSuccess }: Tra
                                             id="date"
                                             required
                                             defaultValue={transaction?.date || format(new Date(), 'yyyy-MM-dd')}
-                                            className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                            className="block w-full px-3 py-2.5 border border-gray-300 rounded-xl bg-white shadow-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 sm:text-sm transition-all duration-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
                                         />
                                     </div>
 
@@ -215,7 +215,7 @@ export function TransactionForm({ isOpen, onClose, transaction, onSuccess }: Tra
                                             id="description"
                                             rows={3}
                                             defaultValue={transaction?.description || ''}
-                                            className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                            className="block w-full px-3 py-2.5 border border-gray-300 rounded-xl bg-white shadow-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 sm:text-sm transition-all duration-200 disabled:bg-gray-100 disabled:cursor-not-allowed resize-none"
                                             placeholder="Add notes..."
                                         />
                                     </div>
@@ -225,14 +225,14 @@ export function TransactionForm({ isOpen, onClose, transaction, onSuccess }: Tra
                                         <button
                                             type="button"
                                             onClick={onClose}
-                                            className="flex-1 px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                                            className="flex-1 px-4 py-2.5 border border-gray-300 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-all duration-200"
                                         >
                                             Cancel
                                         </button>
                                         <button
                                             type="submit"
                                             disabled={loading}
-                                            className="flex-1 px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                            className="flex-1 px-4 py-2.5 border border-transparent rounded-xl shadow-lg shadow-indigo-200 text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
                                         >
                                             {loading ? 'Saving...' : transaction ? 'Update' : 'Add'}
                                         </button>

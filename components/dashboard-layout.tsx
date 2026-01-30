@@ -21,7 +21,7 @@ function DashboardLayoutContent({
     const displayCollapsed = mounted ? collapsed : false
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200">
             <Sidebar userEmail={userEmail} />
 
             {/* Main content - with proper responsive padding */}
