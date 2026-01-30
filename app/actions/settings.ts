@@ -46,15 +46,35 @@ export async function updateUserSettings(formData: FormData) {
 
     const currency = formData.get('currency') as string
 
-    // Upsert settings
-    const { data, error } = await supabase
+    // First, get the existing settings to get the id
+    const { data: existingSettings, error: fetchError } = await supabase
         .from('user_settings')
-        .upsert({
-            user_id: user.id,
-            currency: currency || 'USD',
-        })
-        .select()
+        .select('id')
+        .eq('user_id', user.id)
         .single()
+
+    let data, error
+
+    if (existingSettings) {
+        // Update existing record
+        const result = await supabase
+            .from('user_settings')
+            .update({ currency: currency || 'USD' })
+            .eq('id', existingSettings.id)
+            .select()
+            .single()
+        data = result.data
+        error = result.error
+    } else {
+        // Insert new record
+        const result = await supabase
+            .from('user_settings')
+            .insert({ user_id: user.id, currency: currency || 'USD' })
+            .select()
+            .single()
+        data = result.data
+        error = result.error
+    }
 
     if (error) {
         return { error: error.message }
