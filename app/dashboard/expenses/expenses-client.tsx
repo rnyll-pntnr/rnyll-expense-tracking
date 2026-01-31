@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { DashboardLayout } from '@/components/dashboard-layout'
 import { TransactionForm } from '@/components/transaction-form'
 import { TransactionList } from '@/components/transaction-list'
-import { getTransactions, type TransactionWithCategory, type TransactionFilters, deleteTransaction } from '@/app/actions/transactions'
+import { getTransactions, type TransactionWithCategory, type TransactionFilters, deleteTransaction, getTransactionStats } from '@/app/actions/transactions'
 import { getCategories, type Category } from '@/app/actions/categories'
 import { seedDefaultCategories } from '@/app/actions/categories'
 import { getUserSettings } from '@/app/actions/settings'
@@ -38,6 +38,8 @@ export default function ExpensesPageClient({ userEmail }: { userEmail?: string }
     const [currencyCode, setCurrencyCode] = useState('AED')
     const [selectedIds, setSelectedIds] = useState<string[]>([])
     const [deleting, setDeleting] = useState(false)
+    const [monthlyStats, setMonthlyStats] = useState({ income: 0, expense: 0, balance: 0 })
+    const [isLoadingStats, setIsLoadingStats] = useState(true)
 
     useEffect(() => {
         const loadData = async () => {
@@ -45,7 +47,8 @@ export default function ExpensesPageClient({ userEmail }: { userEmail?: string }
                 loadCategories(),
                 loadTransactions(),
                 initializeCategories(),
-                loadCurrencySettings()
+                loadCurrencySettings(),
+                loadMonthlyStats()
             ])
         }
         loadData()
@@ -86,6 +89,23 @@ export default function ExpensesPageClient({ userEmail }: { userEmail?: string }
         setLoading(false)
     }, [filters])
 
+    const loadMonthlyStats = useCallback(async () => {
+        setIsLoadingStats(true)
+        const now = new Date()
+        const startDate = format(startOfMonth(now), 'yyyy-MM-dd')
+        const endDate = format(endOfMonth(now), 'yyyy-MM-dd')
+
+        const { data } = await getTransactionStats({ startDate, endDate })
+        if (data) {
+            setMonthlyStats({
+                income: data.totalIncome,
+                expense: data.totalExpense,
+                balance: data.balance
+            })
+        }
+        setIsLoadingStats(false)
+    }, [])
+
     function handleEdit(transaction: TransactionWithCategory) {
         setEditingTransaction(transaction)
         setIsFormOpen(true)
@@ -99,6 +119,7 @@ export default function ExpensesPageClient({ userEmail }: { userEmail?: string }
     function handleSuccess() {
         loadTransactions()
         loadCategories()
+        loadMonthlyStats()
     }
 
     function handleFilterChange(key: keyof TransactionFilters, value: any) {
@@ -177,7 +198,7 @@ export default function ExpensesPageClient({ userEmail }: { userEmail?: string }
 
     async function handleBulkDelete() {
         if (selectedIds.length === 0) return
-        
+
         import('sweetalert2').then(async (Swal) => {
             const result = await Swal.default.fire({
                 title: 'Are you sure?',
@@ -192,11 +213,11 @@ export default function ExpensesPageClient({ userEmail }: { userEmail?: string }
 
             if (result.isConfirmed) {
                 setDeleting(true)
-                
+
                 // Delete transactions in parallel
                 const deletePromises = selectedIds.map(id => deleteTransaction(id))
                 const results = await Promise.all(deletePromises)
-                
+
                 const deleted = results.filter(r => !r.error).length
                 const errors = results.filter(r => r.error).length
 
@@ -209,6 +230,7 @@ export default function ExpensesPageClient({ userEmail }: { userEmail?: string }
                 setSelectedIds([])
                 setDeleting(false)
                 loadTransactions()
+                loadMonthlyStats()
             }
         })
     }
@@ -216,15 +238,15 @@ export default function ExpensesPageClient({ userEmail }: { userEmail?: string }
     const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE)
 
     // Calculate summary
-    const summary = useMemo(() => {
-        const income = transactions
-            .filter(t => t.type === 'income')
-            .reduce((sum, t) => sum + Number(t.amount), 0)
-        const expense = transactions
-            .filter(t => t.type === 'expense')
-            .reduce((sum, t) => sum + Number(t.amount), 0)
-        return { income, expense, balance: income - expense }
-    }, [transactions])
+    // const summary = useMemo(() => {
+    //     const income = transactions
+    //         .filter(t => t.type === 'income')
+    //         .reduce((sum, t) => sum + Number(t.amount), 0)
+    //     const expense = transactions
+    //         .filter(t => t.type === 'expense')
+    //         .reduce((sum, t) => sum + Number(t.amount), 0)
+    //     return { income, expense, balance: income - expense }
+    // }, [transactions])
 
     return (
         <DashboardLayout userEmail={userEmail}>
@@ -255,9 +277,13 @@ export default function ExpensesPageClient({ userEmail }: { userEmail?: string }
                                 </div>
                                 <div>
                                     <p className="text-sm text-green-700 font-medium">Income</p>
-                                    <p className="text-lg font-bold text-green-800">
-                                        {currencySymbol}{formatCurrency(summary.income, currencyCode)}
-                                    </p>
+                                    {isLoadingStats ? (
+                                        <div className="h-7 w-24 bg-green-200/50 animate-pulse rounded mt-1"></div>
+                                    ) : (
+                                        <p className="text-lg font-bold text-green-800">
+                                            {currencySymbol}{formatCurrency(monthlyStats.income, currencyCode)}
+                                        </p>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -268,22 +294,30 @@ export default function ExpensesPageClient({ userEmail }: { userEmail?: string }
                                 </div>
                                 <div>
                                     <p className="text-sm text-red-700 font-medium">Expenses</p>
-                                    <p className="text-lg font-bold text-red-800">
-                                        {currencySymbol}{formatCurrency(summary.expense, currencyCode)}
-                                    </p>
+                                    {isLoadingStats ? (
+                                        <div className="h-7 w-24 bg-red-200/50 animate-pulse rounded mt-1"></div>
+                                    ) : (
+                                        <p className="text-lg font-bold text-red-800">
+                                            {currencySymbol}{formatCurrency(monthlyStats.expense, currencyCode)}
+                                        </p>
+                                    )}
                                 </div>
                             </div>
                         </div>
-                        <div className={`bg-linear-to-br rounded-xl p-3 border ${summary.balance >= 0 ? 'from-indigo-50 to-indigo-100 border-indigo-200' : 'from-orange-50 to-orange-100 border-orange-200'}`}>
+                        <div className={`bg-linear-to-br rounded-xl p-3 border ${monthlyStats.balance >= 0 ? 'from-indigo-50 to-indigo-100 border-indigo-200' : 'from-orange-50 to-orange-100 border-orange-200'}`}>
                             <div className="flex items-center gap-3">
-                                <div className={`p-2 rounded-lg ${summary.balance >= 0 ? 'bg-indigo-500' : 'bg-orange-500'}`}>
+                                <div className={`p-2 rounded-lg ${monthlyStats.balance >= 0 ? 'bg-indigo-500' : 'bg-orange-500'}`}>
                                     <BanknotesIcon className="h-5 w-5 text-white" />
                                 </div>
                                 <div>
-                                    <p className={`text-sm font-medium ${summary.balance >= 0 ? 'text-indigo-700' : 'text-orange-700'}`}>Balance</p>
-                                    <p className={`text-lg font-bold ${summary.balance >= 0 ? 'text-indigo-800' : 'text-orange-800'}`}>
-                                        {summary.balance >= 0 ? '+' : '-'}{currencySymbol}{formatCurrency(Math.abs(summary.balance), currencyCode)}
-                                    </p>
+                                    <p className={`text-sm font-medium ${monthlyStats.balance >= 0 ? 'text-indigo-700' : 'text-orange-700'}`}>Balance</p>
+                                    {isLoadingStats ? (
+                                        <div className={`h-7 w-24 animate-pulse rounded mt-1 ${monthlyStats.balance >= 0 ? 'bg-indigo-200/50' : 'bg-orange-200/50'}`}></div>
+                                    ) : (
+                                        <p className={`text-lg font-bold ${monthlyStats.balance >= 0 ? 'text-indigo-800' : 'text-orange-800'}`}>
+                                            {monthlyStats.balance >= 0 ? '+' : '-'}{currencySymbol}{formatCurrency(Math.abs(monthlyStats.balance), currencyCode)}
+                                        </p>
+                                    )}
                                 </div>
                             </div>
                         </div>
