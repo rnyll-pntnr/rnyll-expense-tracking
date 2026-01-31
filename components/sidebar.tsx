@@ -55,12 +55,12 @@ export function Sidebar({ userEmail, userName }: { userEmail?: string, userName?
                     {/* Mobile header */}
                     <div className="flex h-16 items-center justify-between px-4 border-b border-slate-100">
                         <div className="flex items-center gap-3">
-                            <div className="mx-auto h-8 w-8 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200">
+                            <div className="mx-auto h-8 w-8 bg-linear-to-br from-indigo-500 to-violet-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200">
                                 <svg className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
                             </div>
-                            <h1 className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">ExpenseTracker</h1>
+                            <h1 className="text-xl font-bold bg-linear-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">ExpenseTracker</h1>
                         </div>
                         <button
                             onClick={() => setSidebarOpen(false)}
@@ -80,12 +80,12 @@ export function Sidebar({ userEmail, userName }: { userEmail?: string, userName?
                                     href={item.href}
                                     onClick={() => setSidebarOpen(false)}
                                     className={`group flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${active
-                                        ? 'bg-gradient-to-r from-indigo-50 to-violet-50 text-indigo-600 shadow-sm'
+                                        ? 'bg-linear-to-r from-indigo-50 to-violet-50 text-indigo-600 shadow-sm'
                                         : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
                                         }`}
                                 >
                                     <item.icon
-                                        className={`h-5 w-5 flex-shrink-0 ${active ? 'text-indigo-600' : 'text-slate-400 group-hover:text-slate-600'
+                                        className={`h-5 w-5 shrink-0 ${active ? 'text-indigo-600' : 'text-slate-400 group-hover:text-slate-600'
                                             }`}
                                     />
                                     {item.name}
@@ -122,16 +122,16 @@ export function Sidebar({ userEmail, userName }: { userEmail?: string, userName?
                     <div className={`flex h-16 items-center border-b border-slate-100 ${collapsed ? 'justify-center px-2' : 'px-4 gap-3'}`}>
                         {!collapsed && (
                             <>
-                                <div className="mx-auto h-8 w-8 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200">
+                                <div className="mx-auto h-8 w-8 bg-linear-to-br from-indigo-500 to-violet-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200">
                                     <svg className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
                                 </div>
-                                <h1 className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">ExpenseTracker</h1>
+                                <h1 className="text-xl font-bold bg-linear-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">ExpenseTracker</h1>
                             </>
                         )}
                         {collapsed && (
-                            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-200">
+                            <div className="w-8 h-8 rounded-xl bg-linear-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-200">
                                 <svg className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
@@ -148,13 +148,13 @@ export function Sidebar({ userEmail, userName }: { userEmail?: string, userName?
                                     key={item.name}
                                     href={item.href}
                                     className={`group flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${active
-                                        ? 'bg-gradient-to-r from-indigo-50 to-violet-50 text-indigo-600 shadow-sm'
+                                        ? 'bg-linear-to-r from-indigo-50 to-violet-50 text-indigo-600 shadow-sm'
                                         : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
                                         } ${collapsed ? 'justify-center' : ''}`}
                                     title={collapsed ? item.name : undefined}
                                 >
                                     <item.icon
-                                        className={`h-5 w-5 flex-shrink-0 ${active ? 'text-indigo-600' : 'text-slate-400 group-hover:text-slate-600'
+                                        className={`h-5 w-5 shrink-0 ${active ? 'text-indigo-600' : 'text-slate-400 group-hover:text-slate-600'
                                             }`}
                                     />
                                     {!collapsed && item.name}
@@ -225,7 +225,7 @@ export function Sidebar({ userEmail, userName }: { userEmail?: string, userName?
             </div>
 
             {/* Mobile header - always visible on mobile */}
-            <div className="lg:hidden sticky top-0 z-10 flex h-16 flex-shrink-0 bg-white/95 backdrop-blur-sm border-b border-slate-200 shadow-sm">
+            <div className="lg:hidden sticky top-0 z-10 flex h-16 shrink-0 bg-white/95 backdrop-blur-sm border-b border-slate-200 shadow-sm">
                 <button
                     type="button"
                     className="px-4 text-slate-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
@@ -236,7 +236,7 @@ export function Sidebar({ userEmail, userName }: { userEmail?: string, userName?
                 </button>
                 <div className="flex flex-1 items-center justify-between px-4">
                     <div className="flex items-center gap-2">
-                        <h1 className="text-lg font-semibold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">ExpenseTracker</h1>
+                        <h1 className="text-lg font-semibold bg-linear-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">ExpenseTracker</h1>
                     </div>
                 </div>
             </div>

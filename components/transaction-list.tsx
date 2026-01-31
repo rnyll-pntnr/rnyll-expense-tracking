@@ -101,7 +101,7 @@ export function TransactionList({ transactions, onEdit, onUpdate, selectedIds = 
                                         />
                                     )}
                                     <div
-                                        className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center shadow-sm"
+                                        className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center shadow-sm"
                                         style={{ backgroundColor: (transaction.category?.color || '#6b7280') + '20' }}
                                     >
                                         {transaction.category ? (

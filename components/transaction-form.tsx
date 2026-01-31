@@ -194,7 +194,7 @@ export function TransactionForm({ isOpen, onClose, transaction, onSuccess }: Tra
                                                         type="button"
                                                         onClick={() => setType('expense')}
                                                         className={`flex-1 py-2.5 px-4 rounded-xl font-medium transition-all duration-200 ${type === 'expense'
-                                                            ? 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg shadow-red-200'
+                                                            ? 'bg-linear-to-r from-red-500 to-red-600 text-white shadow-lg shadow-red-200'
                                                             : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                                                             }`}
                                                     >
@@ -204,7 +204,7 @@ export function TransactionForm({ isOpen, onClose, transaction, onSuccess }: Tra
                                                         type="button"
                                                         onClick={() => setType('income')}
                                                         className={`flex-1 py-2.5 px-4 rounded-xl font-medium transition-all duration-200 ${type === 'income'
-                                                            ? 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg shadow-green-200'
+                                                            ? 'bg-linear-to-r from-green-500 to-green-600 text-white shadow-lg shadow-green-200'
                                                             : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                                                             }`}
                                                     >
@@ -299,7 +299,7 @@ export function TransactionForm({ isOpen, onClose, transaction, onSuccess }: Tra
                                                 <button
                                                     type="submit"
                                                     disabled={loading}
-                                                    className="flex-1 px-4 py-2.5 border border-transparent rounded-xl shadow-lg shadow-indigo-200 text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                                                    className="flex-1 px-4 py-2.5 border border-transparent rounded-xl shadow-lg shadow-indigo-200 text-sm font-semibold text-white bg-linear-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
                                                 >
                                                     {loading ? 'Saving...' : transaction ? 'Update' : 'Add'}
                                                 </button>

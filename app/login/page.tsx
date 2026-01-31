@@ -87,7 +87,7 @@ function LoginForm() {
     }
 
     return (
-        <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 py-6 px-3 sm:px-6 lg:px-8">
+        <div className="flex min-h-screen flex-col items-center justify-center bg-linear-to-br from-slate-50 via-slate-100 to-slate-200 py-6 px-3 sm:px-6 lg:px-8">
             {/* Background decoration */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute -top-40 -right-40 w-80 h-80 bg-indigo-100 rounded-full opacity-50 blur-3xl" />
@@ -97,7 +97,7 @@ function LoginForm() {
             <div className="w-full max-w-md space-y-6 relative z-10">
                 {/* Logo/Brand section */}
                 <div className="text-center">
-                    <div className="mx-auto h-14 w-14 sm:h-16 sm:w-16 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200">
+                    <div className="mx-auto h-14 w-14 sm:h-16 sm:w-16 bg-linear-to-br from-indigo-500 to-violet-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200">
                         <svg className="h-8 w-8 sm:h-10 sm:w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
@@ -183,7 +183,7 @@ function LoginForm() {
                             <button
                                 type="submit"
                                 disabled={isLoading}
-                                className="group relative flex w-full justify-center items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 py-2 sm:py-3 px-4 text-xs sm:text-sm font-semibold text-white hover:from-indigo-500 hover:to-violet-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all duration-200 shadow-lg shadow-indigo-200 hover:shadow-xl disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:from-indigo-600 disabled:hover:to-violet-600"
+                                className="group relative flex w-full justify-center items-center gap-2 rounded-xl bg-linear-to-r from-indigo-600 to-violet-600 py-2 sm:py-3 px-4 text-xs sm:text-sm font-semibold text-white hover:from-indigo-500 hover:to-violet-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all duration-200 shadow-lg shadow-indigo-200 hover:shadow-xl disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:from-indigo-600 disabled:hover:to-violet-600"
                             >
                                 {isLoading ? (
                                     <>
@@ -210,7 +210,7 @@ function LoginForm() {
 export default function LoginPage() {
     return (
         <Suspense fallback={
-            <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200">
+            <div className="flex min-h-screen flex-col items-center justify-center bg-linear-to-br from-slate-50 via-slate-100 to-slate-200">
                 <div className="text-center">
                     <LoadingSpinner className="h-8 w-8 text-indigo-600 mx-auto" />
                     <p className="mt-4 text-gray-600">Loading...</p>

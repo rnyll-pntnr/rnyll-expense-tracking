@@ -203,7 +203,7 @@ export function SettingsClient({ userId, userEmail, userName, currency: initialC
                         {/* Profile Information Card */}
                         <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-100 shadow-lg shadow-slate-200/50 p-4 sm:p-6">
                             <div className="flex items-center gap-3 mb-4">
-                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-100 to-violet-100 flex items-center justify-center">
+                                <div className="w-10 h-10 rounded-xl bg-linear-to-br from-indigo-100 to-violet-100 flex items-center justify-center">
                                     <UserIcon className="h-5 w-5 text-indigo-600" />
                                 </div>
                                 <div>
@@ -243,7 +243,7 @@ export function SettingsClient({ userId, userEmail, userName, currency: initialC
                                 <button
                                     type="submit"
                                     disabled={savingName}
-                                    className="px-4 py-2.5 border border-transparent rounded-xl shadow-lg shadow-indigo-200 text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                                    className="px-4 py-2.5 border border-transparent rounded-xl shadow-lg shadow-indigo-200 text-sm font-semibold text-white bg-linear-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
                                 >
                                     {savingName ? 'Saving...' : 'Save Changes'}
                                 </button>
@@ -253,7 +253,7 @@ export function SettingsClient({ userId, userEmail, userName, currency: initialC
                         {/* Password Change Card */}
                         <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-100 shadow-lg shadow-slate-200/50 p-4 sm:p-6">
                             <div className="flex items-center gap-3 mb-4">
-                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-100 to-orange-100 flex items-center justify-center">
+                                <div className="w-10 h-10 rounded-xl bg-linear-to-br from-red-100 to-orange-100 flex items-center justify-center">
                                     <LockClosedIcon className="h-5 w-5 text-red-600" />
                                 </div>
                                 <div>
@@ -314,7 +314,7 @@ export function SettingsClient({ userId, userEmail, userName, currency: initialC
                                         <button
                                             type="submit"
                                             disabled={passwordLoading}
-                                            className="px-4 py-2.5 border border-transparent rounded-xl shadow-lg shadow-red-200 text-sm font-semibold text-white bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                                            className="px-4 py-2.5 border border-transparent rounded-xl shadow-lg shadow-red-200 text-sm font-semibold text-white bg-linear-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
                                         >
                                             {passwordLoading ? 'Updating...' : 'Update Password'}
                                         </button>
@@ -369,7 +369,7 @@ export function SettingsClient({ userId, userEmail, userName, currency: initialC
                             </div>
                             <button
                                 onClick={handleAddCategory}
-                                className="inline-flex items-center justify-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-xl text-white bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200"
+                                className="inline-flex items-center justify-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-xl text-white bg-linear-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200"
                             >
                                 <PlusIcon className="h-5 w-5 mr-2" />
                                 Add Category
@@ -384,7 +384,7 @@ export function SettingsClient({ userId, userEmail, userName, currency: initialC
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
                                 {/* Expense Categories */}
                                 <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-100 shadow-lg shadow-slate-200/50 overflow-hidden">
-                                    <div className="p-3 sm:p-4 border-b border-slate-100 bg-gradient-to-r from-red-50 to-red-100/50">
+                                    <div className="p-3 sm:p-4 border-b border-slate-100 bg-linear-to-r from-red-50 to-red-100/50">
                                         <h4 className="text-sm font-semibold text-red-800">Expense Categories</h4>
                                     </div>
                                     <div className="divide-y divide-slate-100 max-h-80 sm:max-h-96 overflow-y-auto">
@@ -395,7 +395,7 @@ export function SettingsClient({ userId, userEmail, userName, currency: initialC
                                                 <div key={category.id} className="p-3 sm:p-4 flex items-center justify-between hover:bg-slate-50/80 transition-all duration-200">
                                                     <div className="flex items-center gap-2 sm:gap-3">
                                                         <div
-                                                            className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-white shadow-md flex-shrink-0"
+                                                            className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-white shadow-md shrink-0"
                                                             style={{ backgroundColor: category.color }}
                                                         >
                                                             <IconRenderer icon={category.icon} className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -426,7 +426,7 @@ export function SettingsClient({ userId, userEmail, userName, currency: initialC
 
                                 {/* Income Categories */}
                                 <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-100 shadow-lg shadow-slate-200/50 overflow-hidden">
-                                    <div className="p-3 sm:p-4 border-b border-slate-100 bg-gradient-to-r from-green-50 to-green-100/50">
+                                    <div className="p-3 sm:p-4 border-b border-slate-100 bg-linear-to-r from-green-50 to-green-100/50">
                                         <h4 className="text-sm font-semibold text-green-800">Income Categories</h4>
                                     </div>
                                     <div className="divide-y divide-slate-100 max-h-80 sm:max-h-96 overflow-y-auto">
@@ -437,7 +437,7 @@ export function SettingsClient({ userId, userEmail, userName, currency: initialC
                                                 <div key={category.id} className="p-3 sm:p-4 flex items-center justify-between hover:bg-slate-50/80 transition-all duration-200">
                                                     <div className="flex items-center gap-2 sm:gap-3">
                                                         <div
-                                                            className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-white shadow-md flex-shrink-0"
+                                                            className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-white shadow-md shrink-0"
                                                             style={{ backgroundColor: category.color }}
                                                         >
                                                             <IconRenderer icon={category.icon} className="h-4 w-4 sm:h-5 sm:w-5" />
