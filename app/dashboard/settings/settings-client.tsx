@@ -58,17 +58,28 @@ export function SettingsClient({ userId, userEmail, userName, currency: initialC
     }
 
     async function handleDeleteCategory(id: string, name: string) {
-        if (!confirm(`Are you sure you want to delete "${name}"?`)) {
-            return
-        }
+        import('sweetalert2').then(async (Swal) => {
+            const result = await Swal.default.fire({
+                title: 'Are you sure?',
+                text: `You are about to delete "${name}". This action cannot be undone.`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, delete it!',
+                cancelButtonText: 'Cancel'
+            })
 
-        const result = await deleteCategory(id)
-        if (result.error) {
-            toast.error(result.error)
-        } else {
-            toast.success('Category deleted')
-            loadCategories()
-        }
+            if (result.isConfirmed) {
+                const deleteResult = await deleteCategory(id)
+                if (deleteResult.error) {
+                    toast.error(deleteResult.error)
+                } else {
+                    toast.success('Category deleted')
+                    loadCategories()
+                }
+            }
+        })
     }
 
     async function handleCurrencyChange(newCurrency: string) {

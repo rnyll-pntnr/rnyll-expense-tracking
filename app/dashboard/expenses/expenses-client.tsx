@@ -177,28 +177,40 @@ export default function ExpensesPageClient({ userEmail }: { userEmail?: string }
 
     async function handleBulkDelete() {
         if (selectedIds.length === 0) return
-        if (!confirm(`Are you sure you want to delete ${selectedIds.length} transactions?`)) {
-            return
-        }
-
-        setDeleting(true)
         
-        // Delete transactions in parallel
-        const deletePromises = selectedIds.map(id => deleteTransaction(id))
-        const results = await Promise.all(deletePromises)
-        
-        const deleted = results.filter(r => !r.error).length
-        const errors = results.filter(r => r.error).length
+        import('sweetalert2').then(async (Swal) => {
+            const result = await Swal.default.fire({
+                title: 'Are you sure?',
+                text: `You are about to delete ${selectedIds.length} transactions. This action cannot be undone.`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, delete them!',
+                cancelButtonText: 'Cancel'
+            })
 
-        if (errors > 0) {
-            toast.error(`Failed to delete ${errors} transactions`)
-        } else {
-            toast.success(`Deleted ${deleted} transactions`)
-        }
+            if (result.isConfirmed) {
+                setDeleting(true)
+                
+                // Delete transactions in parallel
+                const deletePromises = selectedIds.map(id => deleteTransaction(id))
+                const results = await Promise.all(deletePromises)
+                
+                const deleted = results.filter(r => !r.error).length
+                const errors = results.filter(r => r.error).length
 
-        setSelectedIds([])
-        setDeleting(false)
-        loadTransactions()
+                if (errors > 0) {
+                    toast.error(`Failed to delete ${errors} transactions`)
+                } else {
+                    toast.success(`Deleted ${deleted} transactions`)
+                }
+
+                setSelectedIds([])
+                setDeleting(false)
+                loadTransactions()
+            }
+        })
     }
 
     const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE)
