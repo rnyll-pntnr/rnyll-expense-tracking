@@ -1,58 +1,34 @@
 'use client'
 
-import { useRouter, useSearchParams } from 'next/navigation'
-import { format, addMonths, subMonths, isSameDay } from 'date-fns'
 import { ExpenseCalendar } from './expense-calendar'
+import { addMonths, subMonths } from 'date-fns'
 
 interface ExpenseCalendarWrapperProps {
     currentMonth: Date
     currencySymbol?: string
     dailyExpenses: Record<string, number>
     selectedDate?: Date
+    onDateSelect?: (date: Date) => void
+    onMonthChange?: (date: Date) => void
 }
 
 export function ExpenseCalendarWrapper({
     currentMonth,
     currencySymbol = '$',
     dailyExpenses,
-    selectedDate
+    selectedDate,
+    onDateSelect,
+    onMonthChange
 }: ExpenseCalendarWrapperProps) {
-    const router = useRouter()
-    const searchParams = useSearchParams()
-
-    const createQueryString = (params: Record<string, string | null>) => {
-        const newParams = new URLSearchParams(searchParams.toString())
-
-        Object.entries(params).forEach(([key, value]) => {
-            if (value === null) {
-                newParams.delete(key)
-            } else {
-                newParams.set(key, value)
-            }
-        })
-
-        return newParams.toString()
-    }
-
-    const handleDateSelect = (date: Date) => {
-        const dateStr = format(date, 'yyyy-MM-dd')
-
-        // If clicking the already selected date, deselect it
-        if (selectedDate && isSameDay(date, selectedDate)) {
-            router.push(`/dashboard?${createQueryString({ date: null })}`)
-        } else {
-            router.push(`/dashboard?${createQueryString({ date: dateStr })}`)
-        }
-    }
 
     const goToPreviousMonth = () => {
         const prevMonth = subMonths(currentMonth, 1)
-        router.push(`/dashboard?${createQueryString({ month: format(prevMonth, 'yyyy-MM') })}`)
+        onMonthChange?.(prevMonth)
     }
 
     const goToNextMonth = () => {
         const nextMonth = addMonths(currentMonth, 1)
-        router.push(`/dashboard?${createQueryString({ month: format(nextMonth, 'yyyy-MM') })}`)
+        onMonthChange?.(nextMonth)
     }
 
     return (
@@ -64,7 +40,7 @@ export function ExpenseCalendarWrapper({
                 selectedDate={selectedDate}
                 onPreviousMonth={goToPreviousMonth}
                 onNextMonth={goToNextMonth}
-                onDateSelect={handleDateSelect}
+                onDateSelect={onDateSelect}
             />
         </div>
     )

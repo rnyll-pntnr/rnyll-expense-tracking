@@ -1,27 +1,18 @@
-import { getTransactionStats } from '@/app/actions/transactions'
 import { formatCurrency } from '@/lib/currencies'
 
-interface DashboardStatsProps {
-    startDate: string
-    endDate: string
-    currencyCode: string
+interface StatsGridProps {
+    stats: {
+        totalIncome: number
+        totalExpense: number
+        balance: number
+    }
     currencySymbol: string
+    currencyCode: string
     avgDivisor: number
 }
 
-export async function DashboardStats({
-    startDate,
-    endDate,
-    currencyCode,
-    currencySymbol,
-    avgDivisor
-}: DashboardStatsProps) {
-    const { data: stats } = await getTransactionStats({ startDate, endDate })
-
-    // Default values if no data
-    const safeStats = stats || { totalIncome: 0, totalExpense: 0, balance: 0 }
-
-    const avgDaily = avgDivisor > 0 ? safeStats.totalExpense / avgDivisor : 0
+export function StatsGrid({ stats, currencySymbol, currencyCode, avgDivisor }: StatsGridProps) {
+    const avgDaily = avgDivisor > 0 ? stats.totalExpense / avgDivisor : 0
 
     return (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
@@ -34,7 +25,7 @@ export async function DashboardStats({
                     </div>
                     <div className="flex-1">
                         <dt className="text-xs sm:text-sm font-medium text-gray-500">Total Income</dt>
-                        <dd className="text-base sm:text-lg lg:text-xl font-bold text-green-600">{currencySymbol}{formatCurrency(safeStats.totalIncome, currencyCode)}</dd>
+                        <dd className="text-base sm:text-lg lg:text-xl font-bold text-green-600">{currencySymbol}{formatCurrency(stats.totalIncome, currencyCode)}</dd>
                     </div>
                 </div>
             </div>
@@ -48,7 +39,7 @@ export async function DashboardStats({
                     </div>
                     <div className="flex-1">
                         <dt className="text-xs sm:text-sm font-medium text-gray-500">Total Expenses</dt>
-                        <dd className="text-base sm:text-lg lg:text-xl font-bold text-red-600">{currencySymbol}{formatCurrency(safeStats.totalExpense, currencyCode)}</dd>
+                        <dd className="text-base sm:text-lg lg:text-xl font-bold text-red-600">{currencySymbol}{formatCurrency(stats.totalExpense, currencyCode)}</dd>
                     </div>
                 </div>
             </div>
@@ -62,8 +53,8 @@ export async function DashboardStats({
                     </div>
                     <div className="flex-1">
                         <dt className="text-xs sm:text-sm font-medium text-gray-500">Balance</dt>
-                        <dd className={`text-base sm:text-lg lg:text-xl font-bold ${safeStats.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                            {currencySymbol}{formatCurrency(safeStats.balance, currencyCode)}
+                        <dd className={`text-base sm:text-lg lg:text-xl font-bold ${stats.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            {currencySymbol}{formatCurrency(stats.balance, currencyCode)}
                         </dd>
                     </div>
                 </div>
