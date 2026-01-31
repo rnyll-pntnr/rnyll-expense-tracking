@@ -22,11 +22,12 @@ export default async function DashboardPage() {
     const monthStart = format(startOfMonth(now), 'yyyy-MM-dd')
     const monthEnd = format(endOfMonth(now), 'yyyy-MM-dd')
 
-     const [statsResult, recentResult, categoryResult, settingsResult] = await Promise.all([
+     const [statsResult, recentResult, categoryResult, settingsResult, dailyExpensesResult] = await Promise.all([
         getTransactionStats(),
         getTransactions({ limit: 5 }),
         getExpensesByCategory({ startDate: monthStart, endDate: monthEnd }),
         getUserSettings(),
+        getDailyExpenses({ startDate: monthStart, endDate: monthEnd }),
     ])
 
     const stats = statsResult.data || { totalIncome: 0, totalExpense: 0, balance: 0, transactionCount: 0 }
@@ -124,7 +125,11 @@ export default async function DashboardPage() {
                         </div>
 
                         {/* Daily Expense Calendar */}
-                        <ExpenseCalendarWrapper initialMonth={now} currencySymbol={currencySymbol} />
+                        <ExpenseCalendarWrapper 
+                            initialMonth={now} 
+                            currencySymbol={currencySymbol} 
+                            initialDailyExpenses={dailyExpensesResult.data || {}} 
+                        />
                     </div>
 
                     {/* Recent Transactions */}

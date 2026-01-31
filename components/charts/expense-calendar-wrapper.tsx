@@ -8,11 +8,16 @@ import { getDailyExpenses } from '@/app/actions/transactions'
 interface ExpenseCalendarWrapperProps {
     initialMonth: Date
     currencySymbol?: string
+    initialDailyExpenses?: Record<string, number>
 }
 
-export function ExpenseCalendarWrapper({ initialMonth, currencySymbol = '$' }: ExpenseCalendarWrapperProps) {
+export function ExpenseCalendarWrapper({ 
+    initialMonth, 
+    currencySymbol = '$', 
+    initialDailyExpenses = {} 
+}: ExpenseCalendarWrapperProps) {
     const [currentMonth, setCurrentMonth] = useState(initialMonth)
-    const [dailyExpenses, setDailyExpenses] = useState<Record<string, number>>({})
+    const [dailyExpenses, setDailyExpenses] = useState<Record<string, number>>(initialDailyExpenses)
     const [isLoading, setIsLoading] = useState(false)
 
     const fetchDailyExpenses = async (date: Date) => {
@@ -31,7 +36,10 @@ export function ExpenseCalendarWrapper({ initialMonth, currencySymbol = '$' }: E
     }
 
     useEffect(() => {
-        fetchDailyExpenses(currentMonth)
+        // Only fetch if initialDailyExpenses is not provided or month changed
+        if (Object.keys(initialDailyExpenses).length === 0 || currentMonth.getMonth() !== initialMonth.getMonth() || currentMonth.getFullYear() !== initialMonth.getFullYear()) {
+            fetchDailyExpenses(currentMonth)
+        }
     }, [currentMonth])
 
     const goToPreviousMonth = () => {

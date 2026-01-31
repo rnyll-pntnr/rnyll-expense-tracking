@@ -40,10 +40,15 @@ export default function ExpensesPageClient({ userEmail }: { userEmail?: string }
     const [deleting, setDeleting] = useState(false)
 
     useEffect(() => {
-        loadCategories()
-        loadTransactions()
-        initializeCategories()
-        loadCurrencySettings()
+        const loadData = async () => {
+            await Promise.all([
+                loadCategories(),
+                loadTransactions(),
+                initializeCategories(),
+                loadCurrencySettings()
+            ])
+        }
+        loadData()
     }, [])
 
     // Reload transactions when filters change
@@ -177,17 +182,13 @@ export default function ExpensesPageClient({ userEmail }: { userEmail?: string }
         }
 
         setDeleting(true)
-        let deleted = 0
-        let errors = 0
-
-        for (const id of selectedIds) {
-            const result = await deleteTransaction(id)
-            if (result.error) {
-                errors++
-            } else {
-                deleted++
-            }
-        }
+        
+        // Delete transactions in parallel
+        const deletePromises = selectedIds.map(id => deleteTransaction(id))
+        const results = await Promise.all(deletePromises)
+        
+        const deleted = results.filter(r => !r.error).length
+        const errors = results.filter(r => r.error).length
 
         if (errors > 0) {
             toast.error(`Failed to delete ${errors} transactions`)

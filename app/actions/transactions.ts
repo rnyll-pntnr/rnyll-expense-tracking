@@ -148,7 +148,14 @@ export async function getTransactions(filters?: TransactionFilters): Promise<{ d
         return { data: null, error: 'Unauthorized' }
     }
 
-    let query = supabase
+    // Build count query
+    let countQuery = supabase
+        .from('transactions')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+
+    // Build data query
+    let dataQuery = supabase
         .from('transactions')
         .select(`
       *,
@@ -157,44 +164,54 @@ export async function getTransactions(filters?: TransactionFilters): Promise<{ d
         .eq('user_id', user.id)
         .order('date', { ascending: false })
 
+    // Apply filters to both queries
     if (filters?.type) {
-        query = query.eq('type', filters.type)
+        countQuery = countQuery.eq('type', filters.type)
+        dataQuery = dataQuery.eq('type', filters.type)
     }
 
     if (filters?.category_id) {
-        query = query.eq('category_id', filters.category_id)
+        countQuery = countQuery.eq('category_id', filters.category_id)
+        dataQuery = dataQuery.eq('category_id', filters.category_id)
     }
 
     if (filters?.startDate) {
-        query = query.gte('date', filters.startDate)
+        countQuery = countQuery.gte('date', filters.startDate)
+        dataQuery = dataQuery.gte('date', filters.startDate)
     }
 
     if (filters?.endDate) {
-        query = query.lte('date', filters.endDate)
+        countQuery = countQuery.lte('date', filters.endDate)
+        dataQuery = dataQuery.lte('date', filters.endDate)
     }
 
     if (filters?.description) {
-        query = query.ilike('description', `%${filters.description}%`)
+        countQuery = countQuery.ilike('description', `%${filters.description}%`)
+        dataQuery = dataQuery.ilike('description', `%${filters.description}%`)
     }
 
-    // Get total count for pagination
-    const { count } = await query
-
-    // Apply pagination
+    // Apply pagination to data query only
     const page = filters?.page || 1
     const limit = filters?.limit || 10
     const from = (page - 1) * limit
     const to = from + limit - 1
+    dataQuery = dataQuery.range(from, to)
 
-    query = query.range(from, to)
+    // Fetch count and data in parallel
+    const [countResult, dataResult] = await Promise.all([
+        countQuery,
+        dataQuery
+    ])
 
-    const { data, error } = await query
-
-    if (error) {
-        return { data: null, error: error.message, total: 0 }
+    if (dataResult.error) {
+        return { data: null, error: dataResult.error.message, total: 0 }
     }
 
-    return { data: data as TransactionWithCategory[], error: null, total: count || 0 }
+    return { 
+        data: dataResult.data as TransactionWithCategory[], 
+        error: null, 
+        total: countResult.count || 0 
+    }
 }
 
 export async function getTransactionStats(dateRange?: {
