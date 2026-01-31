@@ -6,8 +6,10 @@ interface ExpenseCalendarProps {
     dailyExpenses: Record<string, number>
     currentMonth: Date
     currencySymbol?: string
+    selectedDate?: Date
     onPreviousMonth?: () => void
     onNextMonth?: () => void
+    onDateSelect?: (date: Date) => void
 }
 
 const formatCurrency = (amount: number, currencySymbol: string = '$'): string => {
@@ -27,12 +29,14 @@ const getIntensityClass = (amount: number, maxAmount: number): string => {
     return 'bg-purple-500'
 }
 
-export function ExpenseCalendar({ 
-    dailyExpenses, 
-    currentMonth, 
+export function ExpenseCalendar({
+    dailyExpenses,
+    currentMonth,
     currencySymbol = '$',
-    onPreviousMonth = () => {},
-    onNextMonth = () => {}
+    selectedDate,
+    onPreviousMonth = () => { },
+    onNextMonth = () => { },
+    onDateSelect = () => { }
 }: ExpenseCalendarProps) {
     const monthStart = startOfMonth(currentMonth)
     const monthEnd = endOfMonth(currentMonth)
@@ -88,16 +92,19 @@ export function ExpenseCalendar({
                     const amount = dailyExpenses[dateStr] || 0
                     const isCurrentMonth = isSameMonth(day, currentMonth)
                     const isToday = isSameDay(day, today)
+                    const isSelected = selectedDate && isSameDay(day, selectedDate)
                     const intensityClass = getIntensityClass(amount, maxExpense)
 
                     return (
                         <div
                             key={dateStr}
+                            onClick={() => onDateSelect(day)}
                             className={`
                                 relative aspect-square rounded-md flex items-center justify-center
                                 text-[10px] sm:text-xs transition-all hover:scale-105 cursor-pointer
                                 ${!isCurrentMonth ? 'opacity-30' : ''}
-                                ${isToday ? 'ring-2 ring-indigo-500' : ''}
+                                ${isToday ? 'ring-2 ring-indigo-500 ring-offset-1' : ''}
+                                ${isSelected ? 'ring-2 ring-indigo-600 ring-offset-1 scale-110 z-10 shadow-lg' : ''}
                                 ${intensityClass}
                             `}
                             title={`${format(day, 'MMM dd, yyyy')}: ${currencySymbol}${amount.toFixed(2)}`}

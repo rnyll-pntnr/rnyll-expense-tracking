@@ -1,15 +1,24 @@
+import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { DashboardLayout } from '@/components/dashboard-layout'
-import { getTransactionStats, getTransactions, getExpensesByCategory, getDailyExpenses } from '@/app/actions/transactions'
+import { getTransactions } from '@/app/actions/transactions'
 import { getUserSettings } from '@/app/actions/settings'
 import { getCurrencyInfo, formatCurrency } from '@/lib/currencies'
-import { ExpenseByCategory } from '@/components/charts/expense-by-category'
-import { ExpenseCalendarWrapper } from '@/components/charts/expense-calendar-wrapper'
 import { format, startOfMonth, endOfMonth } from 'date-fns'
 import Link from 'next/link'
 
-export default async function DashboardPage() {
+import { DashboardStats } from '@/components/dashboard/dashboard-stats'
+import { DashboardCategoryChart } from '@/components/dashboard/dashboard-chart'
+import { DashboardCalendar } from '@/components/dashboard/dashboard-calendar'
+import { StatsGridSkeleton, CategoryChartSkeleton, CalendarSkeleton } from '@/components/skeletons'
+
+export default async function DashboardPage({
+    searchParams,
+}: {
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}) {
+    const resolvedSearchParams = await searchParams
     const supabase = await createClient()
     const { data: { user }, error } = await supabase.auth.getUser()
 
@@ -17,29 +26,44 @@ export default async function DashboardPage() {
         redirect('/login')
     }
 
-    // Get current month stats
+    // Parse URL params
     const now = new Date()
-    const monthStart = format(startOfMonth(now), 'yyyy-MM-dd')
-    const monthEnd = format(endOfMonth(now), 'yyyy-MM-dd')
+    const monthParam = typeof resolvedSearchParams.month === 'string' ? resolvedSearchParams.month : null
+    const viewDate = monthParam ? new Date(monthParam + '-01') : now
 
-     const [statsResult, recentResult, categoryResult, settingsResult, dailyExpensesResult] = await Promise.all([
-        getTransactionStats(),
+    // Handle date param (YYYY-MM-DD) for specific day selection
+    const dateParam = typeof resolvedSearchParams.date === 'string' ? resolvedSearchParams.date : null
+    const selectedDate = dateParam ? new Date(dateParam) : null
+
+    // Determine date range for Stats Grid
+    let statsStart, statsEnd
+    let avgDivisor = 1
+
+    if (selectedDate) {
+        statsStart = format(selectedDate, 'yyyy-MM-dd')
+        statsEnd = format(selectedDate, 'yyyy-MM-dd')
+        avgDivisor = 1
+    } else {
+        statsStart = format(startOfMonth(viewDate), 'yyyy-MM-dd')
+        statsEnd = format(endOfMonth(viewDate), 'yyyy-MM-dd')
+        const lastDayOfMonth = endOfMonth(viewDate)
+        avgDivisor = parseInt(format(lastDayOfMonth, 'd'))
+    }
+
+    const calendarMonthStart = format(startOfMonth(viewDate), 'yyyy-MM-dd')
+    const calendarMonthEnd = format(endOfMonth(viewDate), 'yyyy-MM-dd')
+
+    // Fetch essential data that shouldn't block the granular skeletons too much, 
+    // or arguably these could be fast. Recent transactions and Settings.
+    const [recentResult, settingsResult] = await Promise.all([
         getTransactions({ limit: 5 }),
-        getExpensesByCategory({ startDate: monthStart, endDate: monthEnd }),
         getUserSettings(),
-        getDailyExpenses({ startDate: monthStart, endDate: monthEnd }),
     ])
 
-    const stats = statsResult.data || { totalIncome: 0, totalExpense: 0, balance: 0, transactionCount: 0 }
     const recentTransactions = recentResult.data || []
-    const categoryData = categoryResult.data || []
     const currency = await getCurrencyInfo(settingsResult.data?.currency || 'USD')
     const currencySymbol = currency.symbol
     const currencyCode = settingsResult.data?.currency || 'USD'
-
-    // Calculate average daily expense for current month
-    const daysInMonth = now.getDate()
-    const avgDaily = daysInMonth > 0 ? stats.totalExpense / daysInMonth : 0
 
     return (
         <DashboardLayout userEmail={user.email} userName={user.user_metadata.name}>
@@ -48,88 +72,42 @@ export default async function DashboardPage() {
                     <div className="mb-6 sm:mb-8">
                         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Dashboard</h1>
                         <p className="mt-2 text-sm text-gray-600">
-                            Welcome back! Here's an overview of your finances.
+                            Welcome back! Here's an overview of your finances{selectedDate ? ` for ${format(selectedDate, 'MMM dd, yyyy')}` : ` for ${format(viewDate, 'MMMM yyyy')}`}.
                         </p>
                     </div>
 
                     {/* Stats Grid */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
-                        <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-100 shadow-lg shadow-slate-200/50 p-3 sm:p-4 transition-all duration-300 hover:shadow-xl hover:shadow-slate-200/60">
-                            <div className="flex items-center gap-2 sm:gap-3">
-                                <div className="shrink-0 w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-xl bg-linear-to-br from-green-100 to-green-200 flex items-center justify-center">
-                                    <svg className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                </div>
-                                <div className="flex-1">
-                                    <dt className="text-xs sm:text-sm font-medium text-gray-500">Total Income</dt>
-                                    <dd className="text-base sm:text-lg lg:text-xl font-bold text-green-600">{currencySymbol}{formatCurrency(stats.totalIncome, currencyCode)}</dd>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-100 shadow-lg shadow-slate-200/50 p-3 sm:p-4 transition-all duration-300 hover:shadow-xl hover:shadow-slate-200/60">
-                            <div className="flex items-center gap-2 sm:gap-3">
-                                <div className="shrink-0 w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-xl bg-linear-to-br from-red-100 to-red-200 flex items-center justify-center">
-                                    <svg className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                                    </svg>
-                                </div>
-                                <div className="flex-1">
-                                    <dt className="text-xs sm:text-sm font-medium text-gray-500">Total Expenses</dt>
-                                    <dd className="text-base sm:text-lg lg:text-xl font-bold text-red-600">{currencySymbol}{formatCurrency(stats.totalExpense, currencyCode)}</dd>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-100 shadow-lg shadow-slate-200/50 p-3 sm:p-4 transition-all duration-300 hover:shadow-xl hover:shadow-slate-200/60">
-                            <div className="flex items-center gap-2 sm:gap-3">
-                                <div className="shrink-0 w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-xl bg-linear-to-br from-indigo-100 to-indigo-200 flex items-center justify-center">
-                                    <svg className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                                    </svg>
-                                </div>
-                                <div className="flex-1">
-                                    <dt className="text-xs sm:text-sm font-medium text-gray-500">Balance</dt>
-                                    <dd className={`text-base sm:text-lg lg:text-xl font-bold ${stats.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                        {currencySymbol}{formatCurrency(stats.balance, currencyCode)}
-                                    </dd>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-100 shadow-lg shadow-slate-200/50 p-3 sm:p-4 transition-all duration-300 hover:shadow-xl hover:shadow-slate-200/60">
-                            <div className="flex items-center gap-2 sm:gap-3">
-                                <div className="shrink-0 w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-xl bg-linear-to-br from-slate-100 to-slate-200 flex items-center justify-center">
-                                    <svg className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                                    </svg>
-                                </div>
-                                <div className="flex-1">
-                                    <dt className="text-xs sm:text-sm font-medium text-gray-500">Avg. Daily</dt>
-                                    <dd className="text-base sm:text-lg lg:text-xl font-bold text-gray-900">{currencySymbol}{formatCurrency(avgDaily, currencyCode)}</dd>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <Suspense key={`stats-${statsStart}-${statsEnd}`} fallback={<StatsGridSkeleton />}>
+                        <DashboardStats
+                            startDate={statsStart}
+                            endDate={statsEnd}
+                            currencyCode={currencyCode}
+                            currencySymbol={currencySymbol}
+                            avgDivisor={avgDivisor}
+                        />
+                    </Suspense>
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 mb-6 sm:mb-8">
                         {/* Expenses by Category Chart */}
-                        <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-100 shadow-lg shadow-slate-200/50 p-3 sm:p-4">
-                            <h3 className="text-sm sm:text-base lg:text-lg font-semibold text-gray-900 mb-2 sm:mb-3">Expenses by Category</h3>
-                            <ExpenseByCategory
-                                data={categoryData}
-                                currencySymbol={currencySymbol}
+                        <Suspense key={`chart-${statsStart}-${statsEnd}`} fallback={<CategoryChartSkeleton />}>
+                            <DashboardCategoryChart
+                                startDate={statsStart}
+                                endDate={statsEnd}
                                 currencyCode={currencyCode}
+                                currencySymbol={currencySymbol}
                             />
-                        </div>
+                        </Suspense>
 
                         {/* Daily Expense Calendar */}
-                        <ExpenseCalendarWrapper 
-                            initialMonth={now} 
-                            currencySymbol={currencySymbol} 
-                            initialDailyExpenses={dailyExpensesResult.data || {}} 
-                        />
+                        <Suspense key={`calendar-${calendarMonthStart}-${calendarMonthEnd}`} fallback={<CalendarSkeleton />}>
+                            <DashboardCalendar
+                                currentMonth={viewDate}
+                                selectedDate={selectedDate || undefined}
+                                currencySymbol={currencySymbol}
+                                startDate={calendarMonthStart}
+                                endDate={calendarMonthEnd}
+                            />
+                        </Suspense>
                     </div>
 
                     {/* Recent Transactions */}

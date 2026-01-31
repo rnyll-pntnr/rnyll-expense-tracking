@@ -1,70 +1,71 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { format, startOfMonth, endOfMonth } from 'date-fns'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { format, addMonths, subMonths, isSameDay } from 'date-fns'
 import { ExpenseCalendar } from './expense-calendar'
-import { getDailyExpenses } from '@/app/actions/transactions'
 
 interface ExpenseCalendarWrapperProps {
-    initialMonth: Date
+    currentMonth: Date
     currencySymbol?: string
-    initialDailyExpenses?: Record<string, number>
+    dailyExpenses: Record<string, number>
+    selectedDate?: Date
 }
 
-export function ExpenseCalendarWrapper({ 
-    initialMonth, 
-    currencySymbol = '$', 
-    initialDailyExpenses = {} 
+export function ExpenseCalendarWrapper({
+    currentMonth,
+    currencySymbol = '$',
+    dailyExpenses,
+    selectedDate
 }: ExpenseCalendarWrapperProps) {
-    const [currentMonth, setCurrentMonth] = useState(initialMonth)
-    const [dailyExpenses, setDailyExpenses] = useState<Record<string, number>>(initialDailyExpenses)
-    const [isLoading, setIsLoading] = useState(false)
+    const router = useRouter()
+    const searchParams = useSearchParams()
 
-    const fetchDailyExpenses = async (date: Date) => {
-        setIsLoading(true)
-        try {
-            const monthStart = format(startOfMonth(date), 'yyyy-MM-dd')
-            const monthEnd = format(endOfMonth(date), 'yyyy-MM-dd')
-            const result = await getDailyExpenses({ startDate: monthStart, endDate: monthEnd })
-            setDailyExpenses(result.data || {})
-        } catch (error) {
-            console.error('Error fetching daily expenses:', error)
-            setDailyExpenses({})
-        } finally {
-            setIsLoading(false)
+    const createQueryString = (params: Record<string, string | null>) => {
+        const newParams = new URLSearchParams(searchParams.toString())
+
+        Object.entries(params).forEach(([key, value]) => {
+            if (value === null) {
+                newParams.delete(key)
+            } else {
+                newParams.set(key, value)
+            }
+        })
+
+        return newParams.toString()
+    }
+
+    const handleDateSelect = (date: Date) => {
+        const dateStr = format(date, 'yyyy-MM-dd')
+
+        // If clicking the already selected date, deselect it
+        if (selectedDate && isSameDay(date, selectedDate)) {
+            router.push(`/dashboard?${createQueryString({ date: null })}`)
+        } else {
+            router.push(`/dashboard?${createQueryString({ date: dateStr })}`)
         }
     }
 
-    useEffect(() => {
-        // Only fetch if initialDailyExpenses is not provided or month changed
-        if (Object.keys(initialDailyExpenses).length === 0 || currentMonth.getMonth() !== initialMonth.getMonth() || currentMonth.getFullYear() !== initialMonth.getFullYear()) {
-            fetchDailyExpenses(currentMonth)
-        }
-    }, [currentMonth])
-
     const goToPreviousMonth = () => {
-        setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() - 1))
+        const prevMonth = subMonths(currentMonth, 1)
+        router.push(`/dashboard?${createQueryString({ month: format(prevMonth, 'yyyy-MM') })}`)
     }
 
     const goToNextMonth = () => {
-        setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() + 1))
+        const nextMonth = addMonths(currentMonth, 1)
+        router.push(`/dashboard?${createQueryString({ month: format(nextMonth, 'yyyy-MM') })}`)
     }
 
     return (
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-100 shadow-lg shadow-slate-200/50 p-4 sm:p-6">
-            {isLoading ? (
-                <div className="flex items-center justify-center h-64">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-                </div>
-            ) : (
-                <ExpenseCalendar 
-                    dailyExpenses={dailyExpenses} 
-                    currentMonth={currentMonth} 
-                    currencySymbol={currencySymbol}
-                    onPreviousMonth={goToPreviousMonth}
-                    onNextMonth={goToNextMonth}
-                />
-            )}
+            <ExpenseCalendar
+                dailyExpenses={dailyExpenses}
+                currentMonth={currentMonth}
+                currencySymbol={currencySymbol}
+                selectedDate={selectedDate}
+                onPreviousMonth={goToPreviousMonth}
+                onNextMonth={goToNextMonth}
+                onDateSelect={handleDateSelect}
+            />
         </div>
     )
 }
