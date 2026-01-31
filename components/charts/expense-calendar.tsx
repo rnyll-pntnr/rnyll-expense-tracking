@@ -46,26 +46,26 @@ export function ExpenseCalendar({
     const today = new Date()
 
     return (
-        <div className="bg-white shadow rounded-lg p-6">
-            <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-medium text-gray-900">Daily Expenses</h3>
-                <div className="flex items-center space-x-2">
+        <div className="bg-white shadow rounded-lg p-3 sm:p-6">
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+                <h3 className="text-base sm:text-lg font-medium text-gray-900">Daily Expenses</h3>
+                <div className="flex items-center space-x-1 sm:space-x-2">
                     <button
                         onClick={onPreviousMonth}
-                        className="p-1 hover:bg-gray-100 rounded-md transition-colors"
+                        className="p-1 sm:p-1.5 hover:bg-gray-100 rounded-md transition-colors"
                     >
-                        <svg className="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                         </svg>
                     </button>
-                    <span className="text-sm font-medium text-gray-700 min-w-25 text-center">
+                    <span className="text-xs sm:text-sm font-medium text-gray-700 min-w-16 sm:min-w-25 text-center">
                         {format(currentMonth, 'MMMM yyyy')}
                     </span>
                     <button
                         onClick={onNextMonth}
-                        className="p-1 hover:bg-gray-100 rounded-md transition-colors"
+                        className="p-1 sm:p-1.5 hover:bg-gray-100 rounded-md transition-colors"
                     >
-                        <svg className="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                         </svg>
                     </button>
@@ -73,16 +73,16 @@ export function ExpenseCalendar({
             </div>
 
             {/* Day headers */}
-            <div className="grid grid-cols-7 gap-1 mb-2">
-                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-                    <div key={day} className="text-center text-xs font-medium text-gray-500 py-2">
+            <div className="grid grid-cols-7 gap-0.5 sm:gap-1 mb-2">
+                {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, index) => (
+                    <div key={index} className="text-center text-xs font-medium text-gray-500 py-1 sm:py-2">
                         {day}
                     </div>
                 ))}
             </div>
 
             {/* Calendar grid */}
-            <div className="grid grid-cols-7 gap-1">
+            <div className="grid grid-cols-7 gap-0.5 sm:gap-1">
                 {days.map((day) => {
                     const dateStr = format(day, 'yyyy-MM-dd')
                     const amount = dailyExpenses[dateStr] || 0
@@ -95,7 +95,7 @@ export function ExpenseCalendar({
                             key={dateStr}
                             className={`
                                 relative aspect-square rounded-md flex items-center justify-center
-                                text-xs transition-all hover:scale-105 cursor-pointer
+                                text-[10px] sm:text-xs transition-all hover:scale-105 cursor-pointer
                                 ${!isCurrentMonth ? 'opacity-30' : ''}
                                 ${isToday ? 'ring-2 ring-indigo-500' : ''}
                                 ${intensityClass}
@@ -106,7 +106,7 @@ export function ExpenseCalendar({
                                 {format(day, 'd')}
                             </span>
                             {amount > 0 && (
-                                <span className="absolute bottom-0.5 text-[8px] font-semibold text-gray-700">
+                                <span className="absolute bottom-0.5 text-[7px] sm:text-[8px] font-semibold text-gray-700">
                                     {formatCurrency(amount, currencySymbol)}
                                 </span>
                             )}
@@ -116,16 +116,16 @@ export function ExpenseCalendar({
             </div>
 
             {/* Legend */}
-            <div className="mt-4 flex items-center justify-center space-x-4">
-                <span className="text-xs text-gray-500">Less</span>
-                <div className="flex space-x-1">
-                    <div className="w-4 h-4 rounded bg-purple-100"></div>
-                    <div className="w-4 h-4 rounded bg-purple-200"></div>
-                    <div className="w-4 h-4 rounded bg-purple-300"></div>
-                    <div className="w-4 h-4 rounded bg-purple-400"></div>
-                    <div className="w-4 h-4 rounded bg-purple-500"></div>
+            <div className="mt-3 sm:mt-4 flex items-center justify-center space-x-2 sm:space-x-4">
+                <span className="text-[10px] sm:text-xs text-gray-500">Less</span>
+                <div className="flex space-x-0.5 sm:space-x-1">
+                    <div className="w-3 h-3 sm:w-4 sm:h-4 rounded bg-purple-100"></div>
+                    <div className="w-3 h-3 sm:w-4 sm:h-4 rounded bg-purple-200"></div>
+                    <div className="w-3 h-3 sm:w-4 sm:h-4 rounded bg-purple-300"></div>
+                    <div className="w-3 h-3 sm:w-4 sm:h-4 rounded bg-purple-400"></div>
+                    <div className="w-3 h-3 sm:w-4 sm:h-4 rounded bg-purple-500"></div>
                 </div>
-                <span className="text-xs text-gray-500">More</span>
+                <span className="text-[10px] sm:text-xs text-gray-500">More</span>
             </div>
         </div>
     )

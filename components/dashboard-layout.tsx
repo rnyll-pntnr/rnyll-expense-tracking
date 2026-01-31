@@ -34,7 +34,7 @@ function DashboardLayoutContent({
             {/* Footer */}
             <footer className={`
                 transition-all duration-300
-                pt-4 pb-6 px-6
+                pt-4 pb-6 px-4 sm:px-6
                 ${collapsed ? 'lg:pl-20' : 'lg:pl-72'}
                 bg-gradient-to-r from-slate-50 to-slate-100 border-t border-slate-200
             `}>

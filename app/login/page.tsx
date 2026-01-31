@@ -87,36 +87,36 @@ function LoginForm() {
     }
 
     return (
-        <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 py-6 px-3 sm:px-6 lg:px-8">
             {/* Background decoration */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute -top-40 -right-40 w-80 h-80 bg-indigo-100 rounded-full opacity-50 blur-3xl" />
                 <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-violet-100 rounded-full opacity-50 blur-3xl" />
             </div>
 
-            <div className="w-full max-w-md space-y-8 relative z-10">
+            <div className="w-full max-w-md space-y-6 relative z-10">
                 {/* Logo/Brand section */}
                 <div className="text-center">
-                    <div className="mx-auto h-16 w-16 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200">
-                        <svg className="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div className="mx-auto h-14 w-14 sm:h-16 sm:w-16 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200">
+                        <svg className="h-8 w-8 sm:h-10 sm:w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                     </div>
-                    <h2 className="mt-6 text-3xl font-bold tracking-tight text-gray-900">
+                    <h2 className="mt-4 sm:mt-6 text-xl sm:text-3xl font-bold tracking-tight text-gray-900">
                         Welcome back
                     </h2>
-                    <p className="mt-2 text-sm text-gray-600">
+                    <p className="mt-2 text-xs sm:text-sm text-gray-600">
                         Sign in to your account or create a new one
                     </p>
                 </div>
 
-                <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 p-8">
+                <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 p-4 sm:p-6">
                     {/* Toggle between Sign In and Sign Up */}
-                    <div className="flex bg-slate-100 rounded-xl p-1 mb-6">
+                    <div className="flex bg-slate-100 rounded-xl p-1 mb-4 sm:mb-6">
                         <button
                             type="button"
                             onClick={() => setIsSignUp(false)}
-                            className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all duration-200 ${!isSignUp
+                            className={`flex-1 py-2 px-4 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 ${!isSignUp
                                     ? 'bg-white text-indigo-600 shadow-sm'
                                     : 'text-slate-600 hover:text-slate-900'
                                 }`}
@@ -126,7 +126,7 @@ function LoginForm() {
                         <button
                             type="button"
                             onClick={() => setIsSignUp(true)}
-                            className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all duration-200 ${isSignUp
+                            className={`flex-1 py-2 px-4 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 ${isSignUp
                                     ? 'bg-white text-indigo-600 shadow-sm'
                                     : 'text-slate-600 hover:text-slate-900'
                                 }`}
@@ -135,10 +135,10 @@ function LoginForm() {
                         </button>
                     </div>
 
-                    <form className="space-y-5" onSubmit={handleSubmit}>
-                        <div className="space-y-4">
+                    <form className="space-y-4" onSubmit={handleSubmit}>
+                        <div className="space-y-3">
                             <div>
-                                <label htmlFor="email-address" className="block text-sm font-medium text-gray-700 mb-1">
+                                <label htmlFor="email-address" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                                     Email address
                                 </label>
                                 <input
@@ -150,12 +150,12 @@ function LoginForm() {
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     disabled={isLoading}
-                                    className="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition-all duration-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                                    className="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition-all duration-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
                                     placeholder="you@example.com"
                                 />
                             </div>
                             <div>
-                                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                                <label htmlFor="password" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                                     Password
                                 </label>
                                 <input
@@ -167,14 +167,14 @@ function LoginForm() {
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     disabled={isLoading}
-                                    className="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition-all duration-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                                    className="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition-all duration-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
                                     placeholder="••••••••"
                                 />
                             </div>
                         </div>
 
                         {isSignUp && (
-                            <p className="text-xs text-gray-500 bg-slate-50 rounded-lg p-3">
+                            <p className="text-xs text-gray-500 bg-slate-50 rounded-lg p-2 sm:p-3">
                                 By creating an account, you agree to receive a verification email. Please check your inbox and spam folder.
                             </p>
                         )}
@@ -183,7 +183,7 @@ function LoginForm() {
                             <button
                                 type="submit"
                                 disabled={isLoading}
-                                className="group relative flex w-full justify-center items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 py-3 px-4 text-sm font-semibold text-white hover:from-indigo-500 hover:to-violet-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all duration-200 shadow-lg shadow-indigo-200 hover:shadow-xl disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:from-indigo-600 disabled:hover:to-violet-600"
+                                className="group relative flex w-full justify-center items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 py-2 sm:py-3 px-4 text-xs sm:text-sm font-semibold text-white hover:from-indigo-500 hover:to-violet-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all duration-200 shadow-lg shadow-indigo-200 hover:shadow-xl disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:from-indigo-600 disabled:hover:to-violet-600"
                             >
                                 {isLoading ? (
                                     <>

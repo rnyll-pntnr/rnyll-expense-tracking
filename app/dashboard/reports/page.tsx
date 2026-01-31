@@ -46,21 +46,21 @@ export default async function ReportsPage() {
 
     return (
         <DashboardLayout userEmail={user.email} userName={user.user_metadata.name}>
-            <div className="p-6 lg:p-8">
+            <div className="p-4 sm:p-6 lg:p-8">
                 <div className="mx-auto max-w-8xl">
-                    <div className="mb-8">
-                        <h1 className="text-3xl font-bold text-gray-900">Reports & Analytics</h1>
+                    <div className="mb-6 sm:mb-8">
+                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Reports & Analytics</h1>
                         <p className="mt-2 text-sm text-gray-600">
                             Analyze your spending patterns and financial trends.
                         </p>
                     </div>
 
                     {/* Period Stats */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-8">
                         {/* Current Month */}
-                        <div className="bg-white shadow rounded-lg p-4 sm:p-6">
-                            <h3 className="text-sm font-medium text-gray-500 mb-3 sm:mb-4">This Month</h3>
-                            <div className="space-y-2 sm:space-y-3">
+                        <div className="bg-white shadow rounded-lg p-3 sm:p-4 lg:p-6">
+                            <h3 className="text-xs sm:text-sm font-medium text-gray-500 mb-2 sm:mb-3">This Month</h3>
+                            <div className="space-y-1 sm:space-y-2">
                                 <div>
                                     <p className="text-xs text-gray-500">Income</p>
                                     <p className="text-base sm:text-lg font-semibold text-green-600">
@@ -73,7 +73,7 @@ export default async function ReportsPage() {
                                         {currencySymbol}{formatCurrency(currentMonthStats.data?.totalExpense || 0, currencyCode)}
                                     </p>
                                 </div>
-                                <div className="pt-2 sm:pt-3 border-t">
+                                <div className="pt-1 sm:pt-2 border-t">
                                     <p className="text-xs text-gray-500">Balance</p>
                                     <p className={`text-base sm:text-lg font-semibold ${(currentMonthStats.data?.balance || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                                         {currencySymbol}{formatCurrency(currentMonthStats.data?.balance || 0, currencyCode)}
@@ -83,9 +83,9 @@ export default async function ReportsPage() {
                         </div>
 
                         {/* Last Month */}
-                        <div className="bg-white shadow rounded-lg p-4 sm:p-6">
-                            <h3 className="text-sm font-medium text-gray-500 mb-3 sm:mb-4">Last Month</h3>
-                            <div className="space-y-2 sm:space-y-3">
+                        <div className="bg-white shadow rounded-lg p-3 sm:p-4 lg:p-6">
+                            <h3 className="text-xs sm:text-sm font-medium text-gray-500 mb-2 sm:mb-3">Last Month</h3>
+                            <div className="space-y-1 sm:space-y-2">
                                 <div>
                                     <p className="text-xs text-gray-500">Income</p>
                                     <p className="text-base sm:text-lg font-semibold text-green-600">
@@ -98,7 +98,7 @@ export default async function ReportsPage() {
                                         {currencySymbol}{formatCurrency(lastMonthStats.data?.totalExpense || 0, currencyCode)}
                                     </p>
                                 </div>
-                                <div className="pt-2 sm:pt-3 border-t">
+                                <div className="pt-1 sm:pt-2 border-t">
                                     <p className="text-xs text-gray-500">Balance</p>
                                     <p className={`text-base sm:text-lg font-semibold ${(lastMonthStats.data?.balance || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                                         {currencySymbol}{formatCurrency(lastMonthStats.data?.balance || 0, currencyCode)}
@@ -108,9 +108,9 @@ export default async function ReportsPage() {
                         </div>
 
                         {/* Year to Date */}
-                        <div className="bg-white shadow rounded-lg p-4 sm:p-6">
-                            <h3 className="text-sm font-medium text-gray-500 mb-3 sm:mb-4">Year to Date</h3>
-                            <div className="space-y-2 sm:space-y-3">
+                        <div className="bg-white shadow rounded-lg p-3 sm:p-4 lg:p-6">
+                            <h3 className="text-xs sm:text-sm font-medium text-gray-500 mb-2 sm:mb-3">Year to Date</h3>
+                            <div className="space-y-1 sm:space-y-2">
                                 <div>
                                     <p className="text-xs text-gray-500">Income</p>
                                     <p className="text-base sm:text-lg font-semibold text-green-600">
@@ -123,7 +123,7 @@ export default async function ReportsPage() {
                                         {currencySymbol}{formatCurrency(yearStats.data?.totalExpense || 0, currencyCode)}
                                     </p>
                                 </div>
-                                <div className="pt-2 sm:pt-3 border-t">
+                                <div className="pt-1 sm:pt-2 border-t">
                                     <p className="text-xs text-gray-500">Balance</p>
                                     <p className={`text-base sm:text-lg font-semibold ${(yearStats.data?.balance || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                                         {currencySymbol}{formatCurrency(yearStats.data?.balance || 0, currencyCode)}
@@ -134,9 +134,9 @@ export default async function ReportsPage() {
                     </div>
 
                     {/* Charts */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-                        <div className="bg-white shadow rounded-lg p-4 sm:p-6">
-                            <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-3 sm:mb-4">This Month - Expenses by Category</h3>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
+                        <div className="bg-white shadow rounded-lg p-3 sm:p-4 lg:p-6">
+                            <h3 className="text-sm sm:text-base lg:text-lg font-medium text-gray-900 mb-2 sm:mb-3">This Month - Expenses by Category</h3>
                             <ExpenseByCategory
                                 data={currentMonthData.data || []}
                                 currencySymbol={currencySymbol}
@@ -144,8 +144,8 @@ export default async function ReportsPage() {
                             />
                         </div>
 
-                        <div className="bg-white shadow rounded-lg p-4 sm:p-6">
-                            <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-3 sm:mb-4">Year to Date - Expenses by Category</h3>
+                        <div className="bg-white shadow rounded-lg p-3 sm:p-4 lg:p-6">
+                            <h3 className="text-sm sm:text-base lg:text-lg font-medium text-gray-900 mb-2 sm:mb-3">Year to Date - Expenses by Category</h3>
                             <ExpenseByCategory
                                 data={yearData.data || []}
                                 currencySymbol={currencySymbol}
@@ -155,6 +155,6 @@ export default async function ReportsPage() {
                     </div>
                 </div>
             </div>
-        </ DashboardLayout>
-            )
+        </DashboardLayout>
+    )
 }

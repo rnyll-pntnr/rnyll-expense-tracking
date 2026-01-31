@@ -215,11 +215,11 @@ export default function ExpensesPageClient({ userEmail }: { userEmail?: string }
 
     return (
         <DashboardLayout userEmail={userEmail}>
-            <div className="p-6 lg:p-8">
+            <div className="p-4 sm:p-6 lg:p-8">
                 <div className="mx-auto max-w-8xl">
-                    <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                         <div>
-                            <h1 className="text-3xl font-bold text-gray-900">Transactions</h1>
+                            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Transactions</h1>
                             <p className="mt-2 text-sm text-gray-600">
                                 Track and manage all your income and expenses.
                             </p>
@@ -234,41 +234,41 @@ export default function ExpensesPageClient({ userEmail }: { userEmail?: string }
                     </div>
 
                     {/* Summary Cards */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-                        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 border border-green-200">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+                        <div className="bg-linear-to-br from-green-50 to-green-100 rounded-xl p-3 border border-green-200">
                             <div className="flex items-center gap-3">
                                 <div className="p-2 bg-green-500 rounded-lg">
                                     <ArrowTrendingUpIcon className="h-5 w-5 text-white" />
                                 </div>
                                 <div>
                                     <p className="text-sm text-green-700 font-medium">Income</p>
-                                    <p className="text-xl font-bold text-green-800">
+                                    <p className="text-lg font-bold text-green-800">
                                         {currencySymbol}{formatCurrency(summary.income, currencyCode)}
                                     </p>
                                 </div>
                             </div>
                         </div>
-                        <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-xl p-4 border border-red-200">
+                        <div className="bg-linear-to-br from-red-50 to-red-100 rounded-xl p-3 border border-red-200">
                             <div className="flex items-center gap-3">
                                 <div className="p-2 bg-red-500 rounded-lg">
                                     <ArrowTrendingDownIcon className="h-5 w-5 text-white" />
                                 </div>
                                 <div>
                                     <p className="text-sm text-red-700 font-medium">Expenses</p>
-                                    <p className="text-xl font-bold text-red-800">
+                                    <p className="text-lg font-bold text-red-800">
                                         {currencySymbol}{formatCurrency(summary.expense, currencyCode)}
                                     </p>
                                 </div>
                             </div>
                         </div>
-                        <div className={`bg-gradient-to-br rounded-xl p-4 border ${summary.balance >= 0 ? 'from-indigo-50 to-indigo-100 border-indigo-200' : 'from-orange-50 to-orange-100 border-orange-200'}`}>
+                        <div className={`bg-linear-to-br rounded-xl p-3 border ${summary.balance >= 0 ? 'from-indigo-50 to-indigo-100 border-indigo-200' : 'from-orange-50 to-orange-100 border-orange-200'}`}>
                             <div className="flex items-center gap-3">
                                 <div className={`p-2 rounded-lg ${summary.balance >= 0 ? 'bg-indigo-500' : 'bg-orange-500'}`}>
                                     <BanknotesIcon className="h-5 w-5 text-white" />
                                 </div>
                                 <div>
                                     <p className={`text-sm font-medium ${summary.balance >= 0 ? 'text-indigo-700' : 'text-orange-700'}`}>Balance</p>
-                                    <p className={`text-xl font-bold ${summary.balance >= 0 ? 'text-indigo-800' : 'text-orange-800'}`}>
+                                    <p className={`text-lg font-bold ${summary.balance >= 0 ? 'text-indigo-800' : 'text-orange-800'}`}>
                                         {summary.balance >= 0 ? '+' : '-'}{currencySymbol}{formatCurrency(Math.abs(summary.balance), currencyCode)}
                                     </p>
                                 </div>
@@ -277,11 +277,11 @@ export default function ExpensesPageClient({ userEmail }: { userEmail?: string }
                     </div>
 
                     {/* Filter Section */}
-                    <div className="bg-white shadow rounded-lg mb-6">
-                        <div className="px-4 py-4 sm:px-6">
+                    <div className="bg-white shadow rounded-lg mb-4">
+                        <div className="px-4 py-3 sm:px-6">
                             {/* Search bar and quick filters */}
-                            <div className="mb-4">
-                                <div className="flex flex-col sm:flex-row gap-3">
+                            <div className="mb-3">
+                                <div className="flex flex-col sm:flex-row gap-2">
                                     <div className="flex-1">
                                         <div className="flex items-center gap-2">
                                             <input
@@ -293,29 +293,29 @@ export default function ExpensesPageClient({ userEmail }: { userEmail?: string }
                                             />
                                         </div>
                                     </div>
-                                    <div className="flex gap-2">
+                                    <div className="flex gap-2 flex-wrap">
                                         <button
                                             onClick={() => handleDateFilter('today')}
-                                            className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${!filters.startDate && !filters.endDate ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                                            className={`px-3 py-2 text-xs sm:text-sm font-medium rounded-md transition-colors ${!filters.startDate && !filters.endDate ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
                                         >
                                             Today
                                         </button>
                                         <button
                                             onClick={() => handleDateFilter('week')}
-                                            className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${filters.startDate && isWithinInterval(new Date(), { start: new Date(filters.startDate), end: new Date(filters.endDate!) }) && filters.startDate === format(startOfWeek(new Date()), 'yyyy-MM-dd') ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                                            className={`px-3 py-2 text-xs sm:text-sm font-medium rounded-md transition-colors ${filters.startDate && isWithinInterval(new Date(), { start: new Date(filters.startDate), end: new Date(filters.endDate!) }) && filters.startDate === format(startOfWeek(new Date()), 'yyyy-MM-dd') ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
                                         >
                                             This Week
                                         </button>
                                         <button
                                             onClick={() => handleDateFilter('month')}
-                                            className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${filters.startDate && filters.startDate === format(startOfMonth(new Date()), 'yyyy-MM-dd') ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                                            className={`px-3 py-2 text-xs sm:text-sm font-medium rounded-md transition-colors ${filters.startDate && filters.startDate === format(startOfMonth(new Date()), 'yyyy-MM-dd') ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
                                         >
                                             This Month
                                         </button>
                                         {(filters.startDate || filters.endDate) && (
                                             <button
                                                 onClick={clearDateFilters}
-                                                className="px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                                                className="px-3 py-2 text-xs sm:text-sm font-medium text-red-600 hover:bg-red-50 rounded-md transition-colors"
                                             >
                                                 Clear
                                             </button>
@@ -328,7 +328,7 @@ export default function ExpensesPageClient({ userEmail }: { userEmail?: string }
                             <div className="flex items-center justify-between">
                                 <button
                                     onClick={() => setShowFilters(!showFilters)}
-                                    className={`inline-flex items-center px-3 py-2 border rounded-md text-sm font-medium ${showFilters
+                                    className={`inline-flex items-center px-3 py-2 border rounded-md text-xs sm:text-sm font-medium ${showFilters
                                         ? 'border-indigo-500 text-indigo-700 bg-indigo-50'
                                         : 'border-gray-300 text-gray-700 bg-white hover:bg-gray-50'
                                         }`}
@@ -344,10 +344,10 @@ export default function ExpensesPageClient({ userEmail }: { userEmail?: string }
                             </div>
 
                             {showFilters && (
-                                <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                                     {/* Type Filter */}
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                                        <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Type</label>
                                         <select
                                             value={filters.type || ''}
                                             onChange={(e) => handleFilterChange('type', e.target.value || undefined)}
@@ -361,7 +361,7 @@ export default function ExpensesPageClient({ userEmail }: { userEmail?: string }
 
                                     {/* Category Filter */}
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                                        <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Category</label>
                                         <select
                                             value={filters.category_id || ''}
                                             onChange={(e) => handleFilterChange('category_id', e.target.value || undefined)}
@@ -378,7 +378,7 @@ export default function ExpensesPageClient({ userEmail }: { userEmail?: string }
 
                                     {/* Start Date Filter */}
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                                        <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Start Date</label>
                                         <input
                                             type="date"
                                             value={filters.startDate || ''}
@@ -389,7 +389,7 @@ export default function ExpensesPageClient({ userEmail }: { userEmail?: string }
 
                                     {/* End Date Filter */}
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+                                        <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">End Date</label>
                                         <input
                                             type="date"
                                             value={filters.endDate || ''}
@@ -401,10 +401,10 @@ export default function ExpensesPageClient({ userEmail }: { userEmail?: string }
                             )}
 
                             {showFilters && (filters.type || filters.category_id || filters.startDate || filters.endDate || filters.description) && (
-                                <div className="mt-4 pt-4 border-t border-gray-200">
+                                <div className="mt-3 pt-3 border-t border-gray-200">
                                     <button
                                         onClick={clearFilters}
-                                        className="text-sm text-indigo-600 hover:text-indigo-500 font-medium"
+                                        className="text-xs sm:text-sm text-indigo-600 hover:text-indigo-500 font-medium"
                                     >
                                         Clear all filters
                                     </button>
@@ -414,8 +414,8 @@ export default function ExpensesPageClient({ userEmail }: { userEmail?: string }
                     </div>
 
                     {/* Results count and bulk actions */}
-                    <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                        <div className="text-sm text-gray-600">
+                    <div className="mb-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                        <div className="text-xs sm:text-sm text-gray-600">
                             {transactions.length > 0 ? (
                                 <>
                                     Showing {(filters.page! - 1) * ITEMS_PER_PAGE + 1} - {Math.min(filters.page! * ITEMS_PER_PAGE, totalCount || transactions.length)} of {totalCount || transactions.length} transactions
@@ -433,7 +433,7 @@ export default function ExpensesPageClient({ userEmail }: { userEmail?: string }
                             {selectedIds.length > 0 && (
                                 <button
                                     onClick={handleSelectAll}
-                                    className="text-sm text-indigo-600 hover:text-indigo-500 font-medium"
+                                    className="text-xs sm:text-sm text-indigo-600 hover:text-indigo-500 font-medium"
                                 >
                                     {selectedIds.length === transactions.length ? 'Deselect All' : 'Select All'}
                                 </button>
@@ -442,7 +442,7 @@ export default function ExpensesPageClient({ userEmail }: { userEmail?: string }
                                 <button
                                     onClick={handleBulkDelete}
                                     disabled={deleting}
-                                    className="inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 disabled:opacity-50 transition-colors"
+                                    className="inline-flex items-center px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 disabled:opacity-50 transition-colors"
                                 >
                                     {deleting ? 'Deleting...' : `Delete (${selectedIds.length})`}
                                 </button>
@@ -466,11 +466,11 @@ export default function ExpensesPageClient({ userEmail }: { userEmail?: string }
 
                             {/* Pagination */}
                             {totalPages > 1 && (
-                                <div className="mt-6 flex items-center justify-center gap-1 sm:gap-2">
+                                <div className="mt-4 flex items-center justify-center gap-1 sm:gap-2">
                                     <button
                                         onClick={() => handlePageChange(filters.page! - 1)}
                                         disabled={filters.page === 1}
-                                        className="px-3 sm:px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        className="px-2 sm:px-3 py-1 sm:py-2 border border-gray-300 rounded-md text-xs sm:text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         Prev
                                     </button>
@@ -491,7 +491,7 @@ export default function ExpensesPageClient({ userEmail }: { userEmail?: string }
                                             <button
                                                 key={pageNum}
                                                 onClick={() => handlePageChange(pageNum)}
-                                                className={`px-3 sm:px-4 py-2 border rounded-md text-sm font-medium ${filters.page === pageNum
+                                                className={`px-2 sm:px-3 py-1 sm:py-2 border rounded-md text-xs sm:text-sm font-medium ${filters.page === pageNum
                                                     ? 'border-indigo-500 text-indigo-600 bg-indigo-50'
                                                     : 'border-gray-300 text-gray-700 bg-white hover:bg-gray-50'
                                                     }`}
@@ -504,7 +504,7 @@ export default function ExpensesPageClient({ userEmail }: { userEmail?: string }
                                     <button
                                         onClick={() => handlePageChange(filters.page! + 1)}
                                         disabled={filters.page === totalPages}
-                                        className="px-3 sm:px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        className="px-2 sm:px-3 py-1 sm:py-2 border border-gray-300 rounded-md text-xs sm:text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         Next
                                     </button>

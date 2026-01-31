@@ -145,10 +145,10 @@ export function SettingsClient({ userId, userEmail, userName, currency: initialC
     const selectedCurrency = CURRENCIES.find(c => c.code === currency) || CURRENCIES[0]
 
     return (
-        <div className="p-6 lg:p-8">
+        <div className="p-4 sm:p-6 lg:p-8">
             <div className="mx-auto max-w-8xl">
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
+                <div className="mb-6 sm:mb-8">
+                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Settings</h1>
                     <p className="mt-2 text-sm text-gray-600">
                         Manage your account settings and preferences.
                     </p>
@@ -188,9 +188,9 @@ export function SettingsClient({ userId, userEmail, userName, currency: initialC
                 </div>
 
                 {activeTab === 'profile' && (
-                    <div className="space-y-6">
+                    <div className="space-y-4 sm:space-y-6">
                         {/* Profile Information Card */}
-                        <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-100 shadow-lg shadow-slate-200/50 p-6">
+                        <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-100 shadow-lg shadow-slate-200/50 p-4 sm:p-6">
                             <div className="flex items-center gap-3 mb-4">
                                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-100 to-violet-100 flex items-center justify-center">
                                     <UserIcon className="h-5 w-5 text-indigo-600" />
@@ -240,7 +240,7 @@ export function SettingsClient({ userId, userEmail, userName, currency: initialC
                         </div>
 
                         {/* Password Change Card */}
-                        <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-100 shadow-lg shadow-slate-200/50 p-6">
+                        <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-100 shadow-lg shadow-slate-200/50 p-4 sm:p-6">
                             <div className="flex items-center gap-3 mb-4">
                                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-100 to-orange-100 flex items-center justify-center">
                                     <LockClosedIcon className="h-5 w-5 text-red-600" />
@@ -316,12 +316,12 @@ export function SettingsClient({ userId, userEmail, userName, currency: initialC
 
                 {activeTab === 'preferences' && (
                     <div className="bg-white shadow rounded-lg divide-y divide-gray-200">
-                        <div className="p-6">
+                        <div className="p-4 sm:p-6">
                             <h3 className="text-lg font-medium leading-6 text-gray-900">Currency</h3>
                             <p className="mt-1 text-sm text-gray-500">
                                 Set your preferred currency for displaying amounts.
                             </p>
-                            <div className="mt-6">
+                            <div className="mt-4 sm:mt-6">
                                 <label htmlFor="currency" className="block text-sm font-medium text-gray-700 mb-2">
                                     Select Currency
                                 </label>
@@ -331,7 +331,7 @@ export function SettingsClient({ userId, userEmail, userName, currency: initialC
                                     value={currency}
                                     onChange={(e) => handleCurrencyChange(e.target.value)}
                                     disabled={savingCurrency}
-                                    className="block w-full max-w-xs rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm px-3 py-2"
+                                    className="block w-full sm:max-w-xs rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm px-3 py-2"
                                 >
                                     {CURRENCIES.map((c) => (
                                         <option key={c.code} value={c.code}>
@@ -348,7 +348,7 @@ export function SettingsClient({ userId, userEmail, userName, currency: initialC
                 )}
 
                 {activeTab === 'categories' && (
-                    <div className="space-y-6">
+                    <div className="space-y-4 sm:space-y-6">
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                             <div>
                                 <h3 className="text-lg font-medium leading-6 text-gray-900">Categories</h3>
@@ -370,7 +370,7 @@ export function SettingsClient({ userId, userEmail, userName, currency: initialC
                                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
                             </div>
                         ) : (
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
                                 {/* Expense Categories */}
                                 <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-100 shadow-lg shadow-slate-200/50 overflow-hidden">
                                     <div className="p-3 sm:p-4 border-b border-slate-100 bg-gradient-to-r from-red-50 to-red-100/50">
