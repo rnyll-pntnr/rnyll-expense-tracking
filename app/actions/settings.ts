@@ -2,16 +2,9 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import type { UserSettings, Theme } from '@/types'
 
-export interface UserSettings {
-    id: string
-    user_id: string
-    currency: string
-    created_at: string
-    updated_at: string
-}
-
-export async function getUserSettings() {
+export async function getUserSettings(): Promise<{ data: UserSettings | { currency: string; theme: Theme } | null; error: string | null }> {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
@@ -28,7 +21,7 @@ export async function getUserSettings() {
     if (error) {
         // If no settings exist, return default
         if (error.code === 'PGRST116') {
-            return { data: { currency: 'USD' }, error: null }
+            return { data: { currency: 'USD', theme: 'system' }, error: null }
         }
         return { data: null, error: error.message }
     }
@@ -36,15 +29,16 @@ export async function getUserSettings() {
     return { data, error: null }
 }
 
-export async function updateUserSettings(formData: FormData) {
+export async function updateUserSettings(formData: FormData): Promise<{ data: UserSettings | null; error: string | null }> {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
-        return { error: 'Unauthorized' }
+        return { data: null, error: 'Unauthorized' }
     }
 
     const currency = formData.get('currency') as string
+    const theme = formData.get('theme') as Theme
 
     // First, get the existing settings to get the id
     const { data: existingSettings, error: fetchError } = await supabase
@@ -57,9 +51,13 @@ export async function updateUserSettings(formData: FormData) {
 
     if (existingSettings) {
         // Update existing record
+        const updateData: Partial<UserSettings> = {}
+        if (currency) updateData.currency = currency
+        if (theme) updateData.theme = theme
+
         const result = await supabase
             .from('user_settings')
-            .update({ currency: currency || 'USD' })
+            .update(updateData)
             .eq('id', existingSettings.id)
             .select()
             .single()
@@ -69,7 +67,11 @@ export async function updateUserSettings(formData: FormData) {
         // Insert new record
         const result = await supabase
             .from('user_settings')
-            .insert({ user_id: user.id, currency: currency || 'USD' })
+            .insert({ 
+                user_id: user.id, 
+                currency: currency || 'USD', 
+                theme: theme || 'system' 
+            })
             .select()
             .single()
         data = result.data
@@ -77,14 +79,14 @@ export async function updateUserSettings(formData: FormData) {
     }
 
     if (error) {
-        return { error: error.message }
+        return { data: null, error: error.message }
     }
 
     revalidatePath('/dashboard/settings')
     return { data, error: null }
 }
 
-export async function updateUserName(formData: FormData) {
+export async function updateUserName(formData: FormData): Promise<{ error: string | null }> {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
@@ -106,7 +108,7 @@ export async function updateUserName(formData: FormData) {
     return { error: null }
 }
 
-export async function updateUserPassword(formData: FormData) {
+export async function updateUserPassword(formData: FormData): Promise<{ error: string | null }> {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 

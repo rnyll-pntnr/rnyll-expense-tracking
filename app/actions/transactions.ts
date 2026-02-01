@@ -2,29 +2,15 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
-
-export type TransactionType = 'income' | 'expense'
-
-export interface Transaction {
-    id: string
-    user_id: string
-    category_id: string | null
-    type: TransactionType
-    amount: number
-    description: string | null
-    date: string
-    created_at: string
-    updated_at: string
-}
-
-export interface TransactionWithCategory extends Transaction {
-    category: {
-        id: string
-        name: string
-        color: string
-        icon: string
-    } | null
-}
+import type { 
+    Transaction, 
+    TransactionWithCategory, 
+    TransactionFilters, 
+    TransactionStats, 
+    CategoryExpense, 
+    DailyExpense,
+    TransactionType
+} from '@/types'
 
 export async function addTransaction(formData: FormData) {
     const supabase = await createClient()
@@ -122,25 +108,11 @@ export async function deleteTransaction(id: string) {
     return { error: null }
 }
 
-export interface TransactionFilters {
-    type?: TransactionType
-    category_id?: string
-    startDate?: string
-    endDate?: string
-    description?: string
-    page?: number
-    limit?: number
-}
-
-export interface PaginatedTransactions {
-    data: TransactionWithCategory[]
-    total: number
-    page: number
-    limit: number
-    totalPages: number
-}
-
-export async function getTransactions(filters?: TransactionFilters): Promise<{ data: TransactionWithCategory[] | null; error: string | null; total?: number }> {
+export async function getTransactions(filters?: TransactionFilters): Promise<{ 
+    data: TransactionWithCategory[] | null; 
+    error: string | null; 
+    total?: number 
+}> {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
@@ -217,7 +189,7 @@ export async function getTransactions(filters?: TransactionFilters): Promise<{ d
 export async function getTransactionStats(dateRange?: {
     startDate?: string
     endDate?: string
-}) {
+}): Promise<{ data: TransactionStats | null; error: string | null }> {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
@@ -244,7 +216,7 @@ export async function getTransactionStats(dateRange?: {
         return { data: null, error: error.message }
     }
 
-    const stats = {
+    const stats: TransactionStats = {
         totalIncome: 0,
         totalExpense: 0,
         balance: 0,
@@ -267,7 +239,7 @@ export async function getTransactionStats(dateRange?: {
 export async function getExpensesByCategory(dateRange?: {
     startDate?: string
     endDate?: string
-}) {
+}): Promise<{ data: CategoryExpense[] | null; error: string | null }> {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
@@ -299,17 +271,18 @@ export async function getExpensesByCategory(dateRange?: {
     }
 
     // Group by category
-    const categoryMap = new Map()
+    const categoryMap = new Map<string, CategoryExpense>()
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     data.forEach((transaction: any) => {
-        const categoryName = transaction.category?.name || 'Uncategorized'
-        const categoryColor = transaction.category?.color || '#6b7280'
+        const categoryName = (transaction.category as { name?: string } | null)?.name || 'Uncategorized'
+        const categoryColor = (transaction.category as { color?: string } | null)?.color || '#6b7280'
         const amount = Number(transaction.amount)
 
         if (categoryMap.has(categoryName)) {
             categoryMap.set(categoryName, {
                 name: categoryName,
-                value: categoryMap.get(categoryName).value + amount,
+                value: categoryMap.get(categoryName)!.value + amount,
                 color: categoryColor,
             })
         } else {
@@ -327,7 +300,7 @@ export async function getExpensesByCategory(dateRange?: {
 export async function getDailyExpenses(dateRange?: {
     startDate?: string
     endDate?: string
-}) {
+}): Promise<{ data: DailyExpense | null; error: string | null }> {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
@@ -355,7 +328,7 @@ export async function getDailyExpenses(dateRange?: {
     }
 
     // Group by date
-    const dailyMap = new Map()
+    const dailyMap = new Map<string, number>()
 
     data.forEach((transaction) => {
         const date = transaction.date
@@ -363,7 +336,7 @@ export async function getDailyExpenses(dateRange?: {
 
         if (transaction.type === 'expense') {
             if (dailyMap.has(date)) {
-                dailyMap.set(date, dailyMap.get(date) + amount)
+                dailyMap.set(date, dailyMap.get(date)! + amount)
             } else {
                 dailyMap.set(date, amount)
             }

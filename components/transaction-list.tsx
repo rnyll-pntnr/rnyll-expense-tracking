@@ -4,9 +4,9 @@ import { useState, useEffect } from 'react'
 import { format } from 'date-fns'
 import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline'
 import { IconRenderer } from '@/components/icon-helper'
-import { deleteTransaction, type TransactionWithCategory } from '@/app/actions/transactions'
-import { getUserSettings } from '@/app/actions/settings'
-import { getCurrencyInfo, formatCurrency } from '@/lib/currencies'
+import { deleteTransaction } from '@/app/actions/transactions'
+import type { TransactionWithCategory } from '@/types'
+import { useCurrency } from '@/hooks/useCurrency'
 import toast from 'react-hot-toast'
 
 interface TransactionListProps {
@@ -19,22 +19,8 @@ interface TransactionListProps {
 
 export function TransactionList({ transactions, onEdit, onUpdate, selectedIds = [], onSelectOne }: TransactionListProps) {
     const [deleting, setDeleting] = useState<string | null>(null)
-    const [currencySymbol, setCurrencySymbol] = useState('Dh')
-    const [currencyCode, setCurrencyCode] = useState('AED')
     const [expandedId, setExpandedId] = useState<string | null>(null)
-
-    useEffect(() => {
-        loadCurrency()
-    }, [])
-
-    async function loadCurrency() {
-        const { data } = await getUserSettings()
-        if (data) {
-            const currency = await getCurrencyInfo(data.currency || 'USD')
-            setCurrencySymbol(currency.symbol)
-            setCurrencyCode(data.currency || 'USD')
-        }
-    }
+    const { currencySymbol, formatCurrency } = useCurrency()
 
     async function handleDelete(id: string) {
         if (!confirm('Are you sure you want to delete this transaction?')) {
@@ -141,7 +127,7 @@ export function TransactionList({ transactions, onEdit, onUpdate, selectedIds = 
                                                 }`}
                                         >
                                             {transaction.type === 'income' ? '+' : '-'}{currencySymbol}
-                                            {formatCurrency(Number(transaction.amount), currencyCode)}
+                                            {formatCurrency(Number(transaction.amount))}
                                         </p>
                                         <p className="text-sm text-gray-500">
                                             {format(new Date(transaction.date), 'MMM dd, yyyy HH:mm')}

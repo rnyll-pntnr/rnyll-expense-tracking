@@ -1,132 +1,83 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { DashboardLayout } from '@/components/dashboard-layout'
 import { TransactionForm } from '@/components/transaction-form'
 import { TransactionList } from '@/components/transaction-list'
-import { getTransactions, type TransactionWithCategory, type TransactionFilters, deleteTransaction, getTransactionStats } from '@/app/actions/transactions'
-import { getCategories, type Category } from '@/app/actions/categories'
+import { TransactionFilters } from '@/components/transaction-filters'
+import { SummaryCards } from '@/components/summary-cards'
+import { useTransactions, useTransactionStats } from '@/hooks/useTransactions'
+import { useCategories } from '@/hooks/useCategories'
+import { useCurrency } from '@/hooks/useCurrency'
 import { seedDefaultCategories } from '@/app/actions/categories'
-import { getUserSettings } from '@/app/actions/settings'
-import { getCurrencyInfo, formatCurrency } from '@/lib/currencies'
-import { PlusIcon, FunnelIcon, ArrowTrendingUpIcon, ArrowTrendingDownIcon, BanknotesIcon } from '@heroicons/react/24/outline'
-import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, subDays, isWithinInterval } from 'date-fns'
+import { PlusIcon } from '@heroicons/react/24/outline'
+import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek } from 'date-fns'
 import toast from 'react-hot-toast'
+import type { TransactionWithCategory, TransactionFilters as TFilters } from '@/types'
 
 const ITEMS_PER_PAGE = 10
 
 export default function ExpensesPageClient({ userEmail }: { userEmail?: string }) {
     const [isFormOpen, setIsFormOpen] = useState(false)
     const [editingTransaction, setEditingTransaction] = useState<TransactionWithCategory | null>(null)
-    const [transactions, setTransactions] = useState<TransactionWithCategory[]>([])
-    const [categories, setCategories] = useState<Category[]>([])
-    const [loading, setLoading] = useState(true)
-
-    // Filter states
-    const [filters, setFilters] = useState<TransactionFilters>({
-        type: undefined,
-        category_id: undefined,
-        startDate: undefined,
-        endDate: undefined,
-        description: '',
-        page: 1,
-        limit: ITEMS_PER_PAGE,
-    })
-    const [totalCount, setTotalCount] = useState(0)
-    const [showFilters, setShowFilters] = useState(false)
-    const [currencySymbol, setCurrencySymbol] = useState('Dh')
-    const [currencyCode, setCurrencyCode] = useState('AED')
     const [selectedIds, setSelectedIds] = useState<string[]>([])
-    const [deleting, setDeleting] = useState(false)
-    const [monthlyStats, setMonthlyStats] = useState({ income: 0, expense: 0, balance: 0 })
-    const [isLoadingStats, setIsLoadingStats] = useState(true)
 
+    // Initialize hooks
+    const {
+        transactions,
+        loading,
+        deleting,
+        totalCount,
+        filters,
+        totalPages,
+        loadTransactions,
+        handleBulkDelete,
+        handleFilterChange,
+        handlePageChange,
+        clearFilters,
+    } = useTransactions({ limit: ITEMS_PER_PAGE })
+
+    const { stats, loading: statsLoading, loadStats } = useTransactionStats()
+    const { categories, loading: categoriesLoading, initializeCategories } = useCategories()
+    const { currencySymbol, formatCurrency, loading: currencyLoading } = useCurrency()
+
+    // Initialize data on mount
     useEffect(() => {
         const loadData = async () => {
             await Promise.all([
-                loadCategories(),
-                loadTransactions(),
                 initializeCategories(),
-                loadCurrencySettings(),
-                loadMonthlyStats()
+                loadStatsForCurrentMonth(),
             ])
         }
         loadData()
-    }, [])
+    }, [initializeCategories])
 
-    // Reload transactions when filters change
-    useEffect(() => {
-        loadTransactions()
-    }, [filters])
-
-    async function initializeCategories() {
-        await seedDefaultCategories()
-    }
-
-    async function loadCurrencySettings() {
-        const { data } = await getUserSettings()
-        if (data) {
-            const currency = await getCurrencyInfo(data.currency || 'USD')
-            setCurrencySymbol(currency.symbol)
-            setCurrencyCode(data.currency || 'USD')
-        }
-    }
-
-    async function loadCategories() {
-        const { data } = await getCategories()
-        if (data) {
-            setCategories(data)
-        }
-    }
-
-    const loadTransactions = useCallback(async () => {
-        setLoading(true)
-        const result = await getTransactions(filters)
-        if (result.data) {
-            setTransactions(result.data)
-            setTotalCount(result.total || 0)
-        }
-        setLoading(false)
-    }, [filters])
-
-    const loadMonthlyStats = useCallback(async () => {
-        setIsLoadingStats(true)
+    const loadStatsForCurrentMonth = useCallback(async () => {
         const now = new Date()
         const startDate = format(startOfMonth(now), 'yyyy-MM-dd')
         const endDate = format(endOfMonth(now), 'yyyy-MM-dd')
+        await loadStats({ startDate, endDate })
+    }, [loadStats])
 
-        const { data } = await getTransactionStats({ startDate, endDate })
-        if (data) {
-            setMonthlyStats({
-                income: data.totalIncome,
-                expense: data.totalExpense,
-                balance: data.balance
-            })
-        }
-        setIsLoadingStats(false)
-    }, [])
-
-    function handleEdit(transaction: TransactionWithCategory) {
+    // Handlers
+    const handleEdit = (transaction: TransactionWithCategory) => {
         setEditingTransaction(transaction)
         setIsFormOpen(true)
     }
 
-    function handleCloseForm() {
+    const handleCloseForm = () => {
         setIsFormOpen(false)
         setEditingTransaction(null)
     }
 
-    function handleSuccess() {
-        loadTransactions()
-        loadCategories()
-        loadMonthlyStats()
+    const handleSuccess = async () => {
+        await Promise.all([
+            loadTransactions(),
+            loadStatsForCurrentMonth(),
+        ])
     }
 
-    function handleFilterChange(key: keyof TransactionFilters, value: any) {
-        setFilters(prev => ({ ...prev, [key]: value, page: 1 }))
-    }
-
-    function handleDateFilter(range: 'today' | 'week' | 'month') {
+    const handleDateFilter = useCallback((range: 'today' | 'week' | 'month') => {
         const today = new Date()
         let startDate: Date
         let endDate: Date
@@ -146,41 +97,16 @@ export default function ExpensesPageClient({ userEmail }: { userEmail?: string }
                 break
         }
 
-        setFilters(prev => ({
-            ...prev,
-            startDate: format(startDate, 'yyyy-MM-dd'),
-            endDate: format(endDate, 'yyyy-MM-dd'),
-            page: 1
-        }))
-    }
+        handleFilterChange('startDate', format(startDate, 'yyyy-MM-dd'))
+        handleFilterChange('endDate', format(endDate, 'yyyy-MM-dd'))
+    }, [handleFilterChange])
 
-    function clearDateFilters() {
-        setFilters(prev => ({
-            ...prev,
-            startDate: undefined,
-            endDate: undefined,
-            page: 1
-        }))
-    }
+    const handleClearDateFilters = useCallback(() => {
+        handleFilterChange('startDate', undefined)
+        handleFilterChange('endDate', undefined)
+    }, [handleFilterChange])
 
-    function clearFilters() {
-        setFilters({
-            type: undefined,
-            category_id: undefined,
-            startDate: undefined,
-            endDate: undefined,
-            description: '',
-            page: 1,
-            limit: ITEMS_PER_PAGE,
-        })
-        setSelectedIds([])
-    }
-
-    function handlePageChange(newPage: number) {
-        setFilters(prev => ({ ...prev, page: newPage }))
-    }
-
-    function handleSelectAll() {
+    const handleSelectAll = () => {
         if (selectedIds.length === transactions.length) {
             setSelectedIds([])
         } else {
@@ -188,7 +114,7 @@ export default function ExpensesPageClient({ userEmail }: { userEmail?: string }
         }
     }
 
-    function handleSelectOne(id: string) {
+    const handleSelectOne = (id: string) => {
         if (selectedIds.includes(id)) {
             setSelectedIds(prev => prev.filter(i => i !== id))
         } else {
@@ -196,7 +122,7 @@ export default function ExpensesPageClient({ userEmail }: { userEmail?: string }
         }
     }
 
-    async function handleBulkDelete() {
+    const handleBulkDeleteWrapper = async () => {
         if (selectedIds.length === 0) return
 
         import('sweetalert2').then(async (Swal) => {
@@ -212,42 +138,13 @@ export default function ExpensesPageClient({ userEmail }: { userEmail?: string }
             })
 
             if (result.isConfirmed) {
-                setDeleting(true)
-
-                // Delete transactions in parallel
-                const deletePromises = selectedIds.map(id => deleteTransaction(id))
-                const results = await Promise.all(deletePromises)
-
-                const deleted = results.filter(r => !r.error).length
-                const errors = results.filter(r => r.error).length
-
-                if (errors > 0) {
-                    toast.error(`Failed to delete ${errors} transactions`)
-                } else {
-                    toast.success(`Deleted ${deleted} transactions`)
-                }
-
+                await handleBulkDelete(selectedIds)
                 setSelectedIds([])
-                setDeleting(false)
-                loadTransactions()
-                loadMonthlyStats()
             }
         })
     }
 
-    const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE)
-
-    // Calculate summary
-    // const summary = useMemo(() => {
-    //     const income = transactions
-    //         .filter(t => t.type === 'income')
-    //         .reduce((sum, t) => sum + Number(t.amount), 0)
-    //     const expense = transactions
-    //         .filter(t => t.type === 'expense')
-    //         .reduce((sum, t) => sum + Number(t.amount), 0)
-    //     return { income, expense, balance: income - expense }
-    // }, [transactions])
-
+    // Render
     return (
         <DashboardLayout userEmail={userEmail}>
             <div className="p-4 sm:p-6 lg:p-8">
@@ -269,196 +166,22 @@ export default function ExpensesPageClient({ userEmail }: { userEmail?: string }
                     </div>
 
                     {/* Summary Cards */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
-                        <div className="bg-linear-to-br from-green-50 to-green-100 rounded-xl p-3 border border-green-200">
-                            <div className="flex items-center gap-3">
-                                <div className="p-2 bg-green-500 rounded-lg">
-                                    <ArrowTrendingUpIcon className="h-5 w-5 text-white" />
-                                </div>
-                                <div>
-                                    <p className="text-sm text-green-700 font-medium">Income</p>
-                                    {isLoadingStats ? (
-                                        <div className="h-7 w-24 bg-green-200/50 animate-pulse rounded mt-1"></div>
-                                    ) : (
-                                        <p className="text-lg font-bold text-green-800">
-                                            {currencySymbol}{formatCurrency(monthlyStats.income, currencyCode)}
-                                        </p>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                        <div className="bg-linear-to-br from-red-50 to-red-100 rounded-xl p-3 border border-red-200">
-                            <div className="flex items-center gap-3">
-                                <div className="p-2 bg-red-500 rounded-lg">
-                                    <ArrowTrendingDownIcon className="h-5 w-5 text-white" />
-                                </div>
-                                <div>
-                                    <p className="text-sm text-red-700 font-medium">Expenses</p>
-                                    {isLoadingStats ? (
-                                        <div className="h-7 w-24 bg-red-200/50 animate-pulse rounded mt-1"></div>
-                                    ) : (
-                                        <p className="text-lg font-bold text-red-800">
-                                            {currencySymbol}{formatCurrency(monthlyStats.expense, currencyCode)}
-                                        </p>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                        <div className={`bg-linear-to-br rounded-xl p-3 border ${monthlyStats.balance >= 0 ? 'from-indigo-50 to-indigo-100 border-indigo-200' : 'from-orange-50 to-orange-100 border-orange-200'}`}>
-                            <div className="flex items-center gap-3">
-                                <div className={`p-2 rounded-lg ${monthlyStats.balance >= 0 ? 'bg-indigo-500' : 'bg-orange-500'}`}>
-                                    <BanknotesIcon className="h-5 w-5 text-white" />
-                                </div>
-                                <div>
-                                    <p className={`text-sm font-medium ${monthlyStats.balance >= 0 ? 'text-indigo-700' : 'text-orange-700'}`}>Balance</p>
-                                    {isLoadingStats ? (
-                                        <div className={`h-7 w-24 animate-pulse rounded mt-1 ${monthlyStats.balance >= 0 ? 'bg-indigo-200/50' : 'bg-orange-200/50'}`}></div>
-                                    ) : (
-                                        <p className={`text-lg font-bold ${monthlyStats.balance >= 0 ? 'text-indigo-800' : 'text-orange-800'}`}>
-                                            {monthlyStats.balance >= 0 ? '+' : '-'}{currencySymbol}{formatCurrency(Math.abs(monthlyStats.balance), currencyCode)}
-                                        </p>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <SummaryCards
+                        stats={stats}
+                        loading={statsLoading}
+                        currencySymbol={currencySymbol}
+                        formatCurrency={formatCurrency}
+                    />
 
                     {/* Filter Section */}
-                    <div className="bg-white shadow rounded-lg mb-4">
-                        <div className="px-4 py-3 sm:px-6">
-                            {/* Search bar and quick filters */}
-                            <div className="mb-3">
-                                <div className="flex flex-col sm:flex-row gap-2">
-                                    <div className="flex-1">
-                                        <div className="flex items-center gap-2">
-                                            <input
-                                                type="text"
-                                                placeholder="Search description..."
-                                                value={filters.description || ''}
-                                                onChange={(e) => handleFilterChange('description', e.target.value)}
-                                                className="block flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2"
-                                            />
-                                        </div>
-                                    </div>
-                                    <div className="flex gap-2 flex-wrap">
-                                        <button
-                                            onClick={() => handleDateFilter('today')}
-                                            className={`px-3 py-2 text-xs sm:text-sm font-medium rounded-md transition-colors ${!filters.startDate && !filters.endDate ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
-                                        >
-                                            Today
-                                        </button>
-                                        <button
-                                            onClick={() => handleDateFilter('week')}
-                                            className={`px-3 py-2 text-xs sm:text-sm font-medium rounded-md transition-colors ${filters.startDate && isWithinInterval(new Date(), { start: new Date(filters.startDate), end: new Date(filters.endDate!) }) && filters.startDate === format(startOfWeek(new Date()), 'yyyy-MM-dd') ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
-                                        >
-                                            This Week
-                                        </button>
-                                        <button
-                                            onClick={() => handleDateFilter('month')}
-                                            className={`px-3 py-2 text-xs sm:text-sm font-medium rounded-md transition-colors ${filters.startDate && filters.startDate === format(startOfMonth(new Date()), 'yyyy-MM-dd') ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
-                                        >
-                                            This Month
-                                        </button>
-                                        {(filters.startDate || filters.endDate) && (
-                                            <button
-                                                onClick={clearDateFilters}
-                                                className="px-3 py-2 text-xs sm:text-sm font-medium text-red-600 hover:bg-red-50 rounded-md transition-colors"
-                                            >
-                                                Clear
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Filters button */}
-                            <div className="flex items-center justify-between">
-                                <button
-                                    onClick={() => setShowFilters(!showFilters)}
-                                    className={`inline-flex items-center px-3 py-2 border rounded-md text-xs sm:text-sm font-medium ${showFilters
-                                        ? 'border-indigo-500 text-indigo-700 bg-indigo-50'
-                                        : 'border-gray-300 text-gray-700 bg-white hover:bg-gray-50'
-                                        }`}
-                                >
-                                    <FunnelIcon className="h-4 w-4 mr-2" />
-                                    Filters
-                                    {(filters.type || filters.category_id || filters.startDate || filters.endDate) && (
-                                        <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
-                                            Active
-                                        </span>
-                                    )}
-                                </button>
-                            </div>
-
-                            {showFilters && (
-                                <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                                    {/* Type Filter */}
-                                    <div>
-                                        <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Type</label>
-                                        <select
-                                            value={filters.type || ''}
-                                            onChange={(e) => handleFilterChange('type', e.target.value || undefined)}
-                                            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2"
-                                        >
-                                            <option value="">All Types</option>
-                                            <option value="income">Income</option>
-                                            <option value="expense">Expense</option>
-                                        </select>
-                                    </div>
-
-                                    {/* Category Filter */}
-                                    <div>
-                                        <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Category</label>
-                                        <select
-                                            value={filters.category_id || ''}
-                                            onChange={(e) => handleFilterChange('category_id', e.target.value || undefined)}
-                                            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2"
-                                        >
-                                            <option value="">All Categories</option>
-                                            {categories.map((cat) => (
-                                                <option key={cat.id} value={cat.id}>
-                                                    {cat.name}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-
-                                    {/* Start Date Filter */}
-                                    <div>
-                                        <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Start Date</label>
-                                        <input
-                                            type="date"
-                                            value={filters.startDate || ''}
-                                            onChange={(e) => handleFilterChange('startDate', e.target.value || undefined)}
-                                            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2"
-                                        />
-                                    </div>
-
-                                    {/* End Date Filter */}
-                                    <div>
-                                        <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">End Date</label>
-                                        <input
-                                            type="date"
-                                            value={filters.endDate || ''}
-                                            onChange={(e) => handleFilterChange('endDate', e.target.value || undefined)}
-                                            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2"
-                                        />
-                                    </div>
-                                </div>
-                            )}
-
-                            {showFilters && (filters.type || filters.category_id || filters.startDate || filters.endDate || filters.description) && (
-                                <div className="mt-3 pt-3 border-t border-gray-200">
-                                    <button
-                                        onClick={clearFilters}
-                                        className="text-xs sm:text-sm text-indigo-600 hover:text-indigo-500 font-medium"
-                                    >
-                                        Clear all filters
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                    </div>
+                    <TransactionFilters
+                        filters={filters}
+                        categories={categories}
+                        onFilterChange={handleFilterChange}
+                        onDateFilter={handleDateFilter}
+                        onClearDateFilters={handleClearDateFilters}
+                        onClearFilters={clearFilters}
+                    />
 
                     {/* Results count and bulk actions */}
                     <div className="mb-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
@@ -487,87 +210,137 @@ export default function ExpensesPageClient({ userEmail }: { userEmail?: string }
                             )}
                             {selectedIds.length > 0 && (
                                 <button
-                                    onClick={handleBulkDelete}
-                                    disabled={deleting}
+                                    onClick={handleBulkDeleteWrapper}
+                                    disabled={deleting === 'bulk'}
                                     className="inline-flex items-center px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 disabled:opacity-50 transition-colors"
                                 >
-                                    {deleting ? 'Deleting...' : `Delete (${selectedIds.length})`}
+                                    {deleting === 'bulk' ? 'Deleting...' : `Delete (${selectedIds.length})`}
                                 </button>
                             )}
                         </div>
                     </div>
 
                     {loading ? (
-                        <div className="flex justify-center py-12">
-                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+                        <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-100 shadow-lg shadow-slate-200/50 overflow-hidden">
+                            <div className="px-4 py-4 sm:px-6">
+                                <div className="animate-pulse">
+                                    {[...Array(5)].map((_, index) => (
+                                        <div key={index} className="flex items-center gap-3 py-3">
+                                            <div className="h-12 w-12 rounded-xl bg-slate-200"></div>
+                                            <div className="flex-1 space-y-2">
+                                                <div className="h-4 bg-slate-200 rounded w-2/3"></div>
+                                                <div className="h-3 bg-slate-200 rounded w-1/2"></div>
+                                            </div>
+                                            <div className="h-8 bg-slate-200 rounded w-16"></div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
                         </div>
                     ) : (
-                        <>
-                            <TransactionList
-                                transactions={transactions}
-                                onEdit={handleEdit}
-                                onUpdate={loadTransactions}
-                                selectedIds={selectedIds}
-                                onSelectOne={handleSelectOne}
-                            />
+                        <TransactionList
+                            transactions={transactions}
+                            onEdit={handleEdit}
+                            onUpdate={loadTransactions}
+                            selectedIds={selectedIds}
+                            onSelectOne={handleSelectOne}
+                        />
+                    )}
 
-                            {/* Pagination */}
-                            {totalPages > 1 && (
-                                <div className="mt-4 flex items-center justify-center gap-1 sm:gap-2">
-                                    <button
-                                        onClick={() => handlePageChange(filters.page! - 1)}
-                                        disabled={filters.page === 1}
-                                        className="px-2 sm:px-3 py-1 sm:py-2 border border-gray-300 rounded-md text-xs sm:text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-                                        Prev
-                                    </button>
-
-                                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                                        let pageNum: number
-                                        if (totalPages <= 5) {
-                                            pageNum = i + 1
-                                        } else if (filters.page! <= 3) {
-                                            pageNum = i + 1
-                                        } else if (filters.page! >= totalPages - 2) {
-                                            pageNum = totalPages - 4 + i
-                                        } else {
-                                            pageNum = filters.page! - 2 + i
-                                        }
-
-                                        return (
-                                            <button
-                                                key={pageNum}
-                                                onClick={() => handlePageChange(pageNum)}
-                                                className={`px-2 sm:px-3 py-1 sm:py-2 border rounded-md text-xs sm:text-sm font-medium ${filters.page === pageNum
-                                                    ? 'border-indigo-500 text-indigo-600 bg-indigo-50'
-                                                    : 'border-gray-300 text-gray-700 bg-white hover:bg-gray-50'
-                                                    }`}
-                                            >
-                                                {pageNum}
-                                            </button>
-                                        )
-                                    })}
-
-                                    <button
-                                        onClick={() => handlePageChange(filters.page! + 1)}
-                                        disabled={filters.page === totalPages}
-                                        className="px-2 sm:px-3 py-1 sm:py-2 border border-gray-300 rounded-md text-xs sm:text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-                                        Next
-                                    </button>
+                    {/* Pagination */}
+                    {totalPages > 1 && (
+                        <div className="mt-4 flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
+                            <div className="flex flex-1 justify-between sm:hidden">
+                                <button
+                                    onClick={() => handlePageChange(filters.page! - 1)}
+                                    disabled={filters.page! <= 1}
+                                    className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                                >
+                                    Previous
+                                </button>
+                                <button
+                                    onClick={() => handlePageChange(filters.page! + 1)}
+                                    disabled={filters.page! >= totalPages}
+                                    className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                                >
+                                    Next
+                                </button>
+                            </div>
+                            <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+                                <div>
+                                    <p className="text-sm text-gray-700">
+                                        Showing <span className="font-medium">{(filters.page! - 1) * ITEMS_PER_PAGE + 1}</span> to <span className="font-medium">{Math.min(filters.page! * ITEMS_PER_PAGE, totalCount)}</span> of <span className="font-medium">{totalCount}</span> results
+                                    </p>
                                 </div>
-                            )}
-                        </>
+                                <div>
+                                    <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+                                        <button
+                                            onClick={() => handlePageChange(filters.page! - 1)}
+                                            disabled={filters.page! <= 1}
+                                            className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
+                                        >
+                                            <span className="sr-only">Previous</span>
+                                            <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                                <path fillRule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clipRule="evenodd" />
+                                            </svg>
+                                        </button>
+                                        {[...Array(totalPages)].map((_, index) => {
+                                            const page = index + 1
+                                            const isActive = page === filters.page
+                                            const isVisible = 
+                                                page === 1 || 
+                                                page === totalPages || 
+                                                (page >= filters.page! - 1 && page <= filters.page! + 1)
+
+                                            if (!isVisible) {
+                                                if (page === filters.page! - 2 || page === filters.page! + 2) {
+                                                    return (
+                                                        <span key={page} className="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300 focus:outline-offset-0">
+                                                            ...
+                                                        </span>
+                                                    )
+                                                }
+                                                return null
+                                            }
+
+                                            return (
+                                                <button
+                                                    key={page}
+                                                    onClick={() => handlePageChange(page)}
+                                                    className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ring-1 ring-inset ring-gray-300 focus:outline-offset-0 ${
+                                                        isActive 
+                                                            ? 'z-10 bg-indigo-600 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600'
+                                                            : 'text-gray-900 hover:bg-gray-50'
+                                                    }`}
+                                                >
+                                                    {page}
+                                                </button>
+                                            )
+                                        })}
+                                        <button
+                                            onClick={() => handlePageChange(filters.page! + 1)}
+                                            disabled={filters.page! >= totalPages}
+                                            className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
+                                        >
+                                            <span className="sr-only">Next</span>
+                                            <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                                <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
+                                            </svg>
+                                        </button>
+                                    </nav>
+                                </div>
+                            </div>
+                        </div>
                     )}
                 </div>
-            </div>
 
-            <TransactionForm
-                isOpen={isFormOpen}
-                onClose={handleCloseForm}
-                transaction={editingTransaction}
-                onSuccess={handleSuccess}
-            />
+                <TransactionForm
+                    isOpen={isFormOpen}
+                    onClose={handleCloseForm}
+                    transaction={editingTransaction}
+                    onSuccess={handleSuccess}
+                />
+            </div>
         </DashboardLayout>
     )
 }

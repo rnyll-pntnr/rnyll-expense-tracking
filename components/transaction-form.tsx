@@ -3,13 +3,14 @@
 import { Fragment, useState, useEffect, useRef, useCallback } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
 import { XMarkIcon } from '@heroicons/react/24/outline'
-import { addTransaction, updateTransaction, type TransactionWithCategory } from '@/app/actions/transactions'
-import { getCategories, type Category } from '@/app/actions/categories'
-import { getUserSettings } from '@/app/actions/settings'
-import { getCurrencyInfo } from '@/lib/currencies'
+import { addTransaction, updateTransaction } from '@/app/actions/transactions'
+import type { TransactionWithCategory } from '@/types'
+import { getCategories } from '@/app/actions/categories'
+import type { Category } from '@/types'
+import { useCurrency } from '@/hooks/useCurrency'
 import toast from 'react-hot-toast'
 import { format } from 'date-fns'
-import { CategoryType } from '@/app/actions/categories'
+import type { TransactionType } from '@/types'
 
 interface TransactionFormProps {
     isOpen: boolean
@@ -19,22 +20,22 @@ interface TransactionFormProps {
 }
 
 export function TransactionForm({ isOpen, onClose, transaction, onSuccess }: TransactionFormProps) {
-    const [type, setType] = useState<'income' | 'expense'>('expense')
+    const [type, setType] = useState<TransactionType>('expense')
     const [amount, setAmount] = useState('')
     const [selectedCategory, setSelectedCategory] = useState('')
     const [categories, setCategories] = useState<Category[]>([])
     const [loading, setLoading] = useState(false)
-    const [currencySymbol, setCurrencySymbol] = useState('Dh')
     const [errors, setErrors] = useState<Record<string, string>>({})
     const [dataLoaded, setDataLoaded] = useState(false)
     const amountInputRef = useRef<HTMLInputElement>(null)
     const formRef = useRef<HTMLFormElement>(null)
+    const { currencySymbol } = useCurrency()
 
     // Load initial data when form opens
     useEffect(() => {
         if (isOpen) {
             setDataLoaded(false)
-            Promise.all([loadCurrency(), loadCategories(type)]).then(() => {
+            Promise.all([loadCategories(type)]).then(() => {
                 setDataLoaded(true)
                 // Focus amount input after animation
                 setTimeout(() => {
@@ -80,18 +81,10 @@ export function TransactionForm({ isOpen, onClose, transaction, onSuccess }: Tra
         return () => window.removeEventListener('keydown', handleKeyDown)
     }, [handleKeyDown])
 
-    async function loadCategories(categoryType: string) {
-        const { data } = await getCategories(categoryType as CategoryType)
+    async function loadCategories(categoryType: TransactionType) {
+        const { data } = await getCategories(categoryType)
         if (data) {
             setCategories(data)
-        }
-    }
-
-    async function loadCurrency() {
-        const { data } = await getUserSettings()
-        if (data) {
-            const currency = getCurrencyInfo(data.currency || 'USD')
-            setCurrencySymbol(currency.symbol)
         }
     }
 

@@ -1,7 +1,8 @@
 import { ExpenseByCategory } from '@/components/charts/expense-by-category'
+import type { CategoryExpense } from '@/types'
 
 interface CategoryChartProps {
-    data: any[]
+    data: CategoryExpense[]
     currencySymbol: string
     currencyCode: string
 }

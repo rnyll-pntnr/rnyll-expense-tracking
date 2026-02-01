@@ -15,11 +15,18 @@ export default async function SettingsPage() {
     // Get user settings
     const { data: settings } = await getUserSettings()
     const currency = settings?.currency || 'USD'
+    const theme = settings?.theme || 'system'
     const userName = user.user_metadata?.name || ''
 
     return (
         <DashboardLayout userEmail={user.email} userName={user.user_metadata.name}>
-            <SettingsClient userId={user.id} userEmail={user.email || ''} userName={userName} currency={currency} />
+            <SettingsClient 
+                userId={user.id} 
+                userEmail={user.email || ''} 
+                userName={userName} 
+                currency={currency} 
+                theme={theme}
+            />
         </DashboardLayout>
     )
 }

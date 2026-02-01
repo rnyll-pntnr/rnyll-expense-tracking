@@ -4,19 +4,22 @@ import { useState, useEffect, useRef } from 'react'
 import { PlusIcon, TrashIcon, PencilIcon, UserIcon, LockClosedIcon } from '@heroicons/react/24/outline'
 import { CategoryForm } from '@/components/category-form'
 import { IconRenderer } from '@/components/icon-helper'
-import { getCategories, deleteCategory, type Category } from '@/app/actions/categories'
+import { getCategories, deleteCategory } from '@/app/actions/categories'
+import type { Category } from '@/types'
 import { updateUserSettings, updateUserName, updateUserPassword } from '@/app/actions/settings'
 import { CURRENCIES } from '@/lib/currencies'
 import toast from 'react-hot-toast'
+import type { Theme } from '@/types'
 
 interface SettingsClientProps {
     userId: string
     userEmail: string
     userName: string
     currency: string
+    theme: string
 }
 
-export function SettingsClient({ userId, userEmail, userName, currency: initialCurrency }: SettingsClientProps) {
+export function SettingsClient({ userId, userEmail, userName, currency: initialCurrency, theme: initialTheme }: SettingsClientProps) {
     const [isFormOpen, setIsFormOpen] = useState(false)
     const [editingCategory, setEditingCategory] = useState<Category | null>(null)
     const [categories, setCategories] = useState<Category[]>([])
@@ -24,6 +27,8 @@ export function SettingsClient({ userId, userEmail, userName, currency: initialC
     const [activeTab, setActiveTab] = useState<'profile' | 'categories' | 'preferences'>('categories')
     const [currency, setCurrency] = useState(initialCurrency)
     const [savingCurrency, setSavingCurrency] = useState(false)
+    const [theme, setTheme] = useState<Theme>(initialTheme as Theme)
+    const [savingTheme, setSavingTheme] = useState(false)
 
     // Form refs
     const passwordFormRef = useRef<HTMLFormElement>(null)
@@ -80,6 +85,31 @@ export function SettingsClient({ userId, userEmail, userName, currency: initialC
                 }
             }
         })
+    }
+
+    async function handleThemeChange(newTheme: Theme) {
+        console.log('handleThemeChange called with:', newTheme)
+        setSavingTheme(true)
+        try {
+            const formData = new FormData()
+            formData.set('theme', newTheme)
+
+            const result = await updateUserSettings(formData)
+            console.log('updateUserSettings result:', result)
+            if (result.error) {
+                console.error('Error updating theme:', result.error)
+                toast.error(result.error)
+            } else {
+                setTheme(newTheme)
+                console.log('Theme updated in state:', newTheme)
+                toast.success('Theme updated!')
+            }
+        } catch (error) {
+            console.error('Theme update error:', error)
+            toast.error('Failed to update theme')
+        } finally {
+            setSavingTheme(false)
+        }
     }
 
     async function handleCurrencyChange(newCurrency: string) {
@@ -326,13 +356,46 @@ export function SettingsClient({ userId, userEmail, userName, currency: initialC
                 )}
 
                 {activeTab === 'preferences' && (
-                    <div className="bg-white shadow rounded-lg divide-y divide-gray-200">
-                        <div className="p-4 sm:p-6">
-                            <h3 className="text-lg font-medium leading-6 text-gray-900">Currency</h3>
-                            <p className="mt-1 text-sm text-gray-500">
+                    <div className="space-y-6">
+                        {/* Theme Settings Card */}
+                        <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-100 shadow-lg shadow-slate-200/50 p-4 sm:p-6">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Theme</h3>
+                            <p className="text-sm text-gray-500 mb-4">
+                                Choose your preferred theme for the application.
+                            </p>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                {[ 
+                                    { value: 'light', label: 'Light', icon: '☀️' },
+                                    { value: 'dark', label: 'Dark', icon: '🌙' },
+                                    { value: 'system', label: 'System', icon: '💻' }
+                                ].map((themeOption) => (
+                                    <button
+                                        key={themeOption.value}
+                                        onClick={() => handleThemeChange(themeOption.value as Theme)}
+                                        disabled={savingTheme}
+                                        className={`p-4 rounded-xl border-2 transition-all duration-200 flex flex-col items-center gap-2 ${
+                                            theme === themeOption.value
+                                                ? 'border-indigo-500 bg-indigo-50/50'
+                                                : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                                        }`}
+                                    >
+                                        <span className="text-2xl">{themeOption.icon}</span>
+                                        <span className="text-sm font-medium text-gray-700">{themeOption.label}</span>
+                                    </button>
+                                ))}
+                            </div>
+                            <p className="mt-4 text-sm text-gray-500">
+                                Current: <span className="font-medium capitalize">{theme}</span>
+                            </p>
+                        </div>
+
+                        {/* Currency Settings Card */}
+                        <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-100 shadow-lg shadow-slate-200/50 p-4 sm:p-6">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Currency</h3>
+                            <p className="text-sm text-gray-500 mb-4">
                                 Set your preferred currency for displaying amounts.
                             </p>
-                            <div className="mt-4 sm:mt-6">
+                            <div>
                                 <label htmlFor="currency" className="block text-sm font-medium text-gray-700 mb-2">
                                     Select Currency
                                 </label>

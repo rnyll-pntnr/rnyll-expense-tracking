@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import type { TransactionStats, CategoryExpense, DailyExpense, TransactionWithCategory } from '@/types'
 import { format, startOfMonth, endOfMonth } from 'date-fns'
 import { getTransactionStats, getExpensesByCategory, getDailyExpenses } from '@/app/actions/transactions'
 import { StatsGrid } from '@/components/dashboard/stats-grid'
@@ -9,15 +10,15 @@ import { ExpenseCalendarWrapper } from '@/components/charts/expense-calendar-wra
 import { StatsGridSkeleton, CategoryChartSkeleton, CalendarSkeleton } from '@/components/skeletons'
 
 interface DashboardViewsProps {
-    initialStats: any
-    initialCategoryData: any
-    initialDailyExpenses: any
+    initialStats: TransactionStats
+    initialCategoryData: CategoryExpense[]
+    initialDailyExpenses: DailyExpense
     initialMonth: Date
     userEmail?: string
     userName?: string
     currencySymbol: string
     currencyCode: string
-    recentTransactions: any[]
+    recentTransactions: TransactionWithCategory[]
 }
 
 export function DashboardViews({
@@ -77,7 +78,12 @@ export function DashboardViews({
                 getDailyExpenses({ startDate: calendarStart, endDate: calendarEnd })
             ])
 
-            setStats(newStats.data || { totalIncome: 0, totalExpense: 0, balance: 0 })
+            setStats(newStats.data || { 
+                totalIncome: 0, 
+                totalExpense: 0, 
+                balance: 0, 
+                transactionCount: 0 
+            })
             setCategoryData(newCategories.data || [])
             setDailyExpenses(newDaily.data || {})
         })
@@ -95,7 +101,7 @@ export function DashboardViews({
             <div className="mb-6 sm:mb-8">
                 <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Dashboard</h1>
                 <p className="mt-2 text-sm text-gray-600">
-                    Welcome back! Here's an overview of your finances{selectedDate ? ` for ${format(selectedDate, 'MMM dd, yyyy')}` : ` for ${format(viewDate, 'MMMM yyyy')}`}.
+                            Welcome back! Here&apos;s an overview of your finances{selectedDate ? ` for ${format(selectedDate, 'MMM dd, yyyy')}` : ` for ${format(viewDate, 'MMMM yyyy')}`}.
                 </p>
             </div>
 

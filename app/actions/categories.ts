@@ -2,19 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
-
-export type CategoryType = 'income' | 'expense'
-
-export interface Category {
-    id: string
-    user_id: string
-    name: string
-    type: CategoryType
-    color: string
-    icon: string
-    created_at: string
-    updated_at: string
-}
+import type { Category, TransactionType } from '@/types'
 
 export async function addCategory(formData: FormData) {
     const supabase = await createClient()
@@ -25,7 +13,7 @@ export async function addCategory(formData: FormData) {
     }
 
     const name = formData.get('name') as string
-    const type = formData.get('type') as CategoryType
+    const type = formData.get('type') as TransactionType
     const color = formData.get('color') as string
     const icon = formData.get('icon') as string
 
@@ -104,7 +92,7 @@ export async function deleteCategory(id: string) {
     return { error: null }
 }
 
-export async function getCategories(type?: CategoryType) {
+export async function getCategories(type?: TransactionType): Promise<{ data: Category[] | null; error: string | null }> {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 

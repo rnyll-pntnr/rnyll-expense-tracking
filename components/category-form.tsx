@@ -18,7 +18,8 @@ import {
     CurrencyDollarIcon
 } from '@heroicons/react/24/solid'
 import { IconRenderer } from '@/components/icon-helper'
-import { addCategory, updateCategory, type Category, CategoryType } from '@/app/actions/categories'
+import { addCategory, updateCategory } from '@/app/actions/categories'
+import type { Category, TransactionType } from '@/types'
 import toast from 'react-hot-toast'
 
 interface CategoryFormProps {
@@ -49,7 +50,7 @@ const ICONS = [
 ]
 
 export function CategoryForm({ isOpen, onClose, category, onSuccess }: CategoryFormProps) {
-    const [type, setType] = useState<CategoryType>('expense')
+    const [type, setType] = useState<TransactionType>('expense')
     const [name, setName] = useState('')
     const [color, setColor] = useState(COLORS[0])
     const [icon, setIcon] = useState(ICONS[0].name)
