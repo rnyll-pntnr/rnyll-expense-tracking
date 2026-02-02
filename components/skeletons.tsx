@@ -47,3 +47,14 @@ export function CalendarSkeleton() {
         </div>
     )
 }
+
+export function ChartSkeleton() {
+    return (
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-100 shadow-lg shadow-slate-200/50 p-4 sm:p-6 h-[350px]">
+            <div className="h-6 w-48 bg-slate-100 rounded animate-pulse mb-4" />
+            <div className="flex items-center justify-center h-full">
+                <div className="w-full h-48 bg-slate-100 rounded-lg animate-pulse" />
+            </div>
+        </div>
+    )
+}

@@ -56,7 +56,7 @@ export default function ExpensesPageClient({ userEmail }: { userEmail?: string }
         const now = new Date()
         const startDate = format(startOfMonth(now), 'yyyy-MM-dd')
         const endDate = format(endOfMonth(now), 'yyyy-MM-dd')
-        await loadStats({ startDate, endDate })
+        await loadStats({ startDate, endDate }, { includeOverallBalance: true })
     }, [loadStats])
 
     // Handlers
@@ -171,6 +171,11 @@ export default function ExpensesPageClient({ userEmail }: { userEmail?: string }
                         loading={statsLoading}
                         currencySymbol={currencySymbol}
                         formatCurrency={formatCurrency}
+                        period={
+                            filters.startDate && filters.endDate 
+                                ? `${format(new Date(filters.startDate), 'MMM d')} - ${format(new Date(filters.endDate), 'MMM d, yyyy')}`
+                                : 'This Month'
+                        }
                     />
 
                     {/* Filter Section */}

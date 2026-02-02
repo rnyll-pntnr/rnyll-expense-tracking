@@ -119,7 +119,7 @@ export function useTransactions(initialFilters: TransactionFilters = {}) {
 }
 
 export function useTransactionStats() {
-    const [stats, setStats] = useState<TransactionStats>({
+    const [stats, setStats] = useState<TransactionStats & { overallBalance?: number }>({
         totalIncome: 0,
         totalExpense: 0,
         balance: 0,
@@ -128,10 +128,10 @@ export function useTransactionStats() {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
 
-    const loadStats = useCallback(async (dateRange?: { startDate?: string; endDate?: string }) => {
+    const loadStats = useCallback(async (dateRange?: { startDate?: string; endDate?: string }, options?: { includeOverallBalance?: boolean }) => {
         setLoading(true)
         try {
-            const result = await getTransactionStats(dateRange)
+            const result = await getTransactionStats(dateRange, options)
             if (result.data) {
                 setStats(result.data)
             }

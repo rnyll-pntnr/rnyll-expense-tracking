@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react'
 import type { TransactionStats, CategoryExpense, DailyExpense, TransactionWithCategory } from '@/types'
 import { format, startOfMonth, endOfMonth } from 'date-fns'
 import { getTransactionStats, getExpensesByCategory, getDailyExpenses } from '@/app/actions/transactions'
-import { StatsGrid } from '@/components/dashboard/stats-grid'
+import { EnhancedStatsCard } from '@/components/dashboard/enhanced-stats-card'
 import { CategoryChart } from '@/components/dashboard/category-chart'
 import { ExpenseCalendarWrapper } from '@/components/charts/expense-calendar-wrapper'
 import { StatsGridSkeleton, CategoryChartSkeleton, CalendarSkeleton } from '@/components/skeletons'
@@ -58,7 +58,7 @@ export function DashboardViews({
         fetchData(month, null)
     }
 
-    const fetchData = (month: Date, date: Date | null) => {
+     const fetchData = (month: Date, date: Date | null) => {
         startTransition(async () => {
             let statsStart, statsEnd
             const calendarStart = format(startOfMonth(month), 'yyyy-MM-dd')
@@ -73,7 +73,7 @@ export function DashboardViews({
             }
 
             const [newStats, newCategories, newDaily] = await Promise.all([
-                getTransactionStats({ startDate: statsStart, endDate: statsEnd }),
+                getTransactionStats({ startDate: statsStart, endDate: statsEnd }, { includeOverallBalance: true }),
                 getExpensesByCategory({ startDate: statsStart, endDate: statsEnd }),
                 getDailyExpenses({ startDate: calendarStart, endDate: calendarEnd })
             ])
@@ -105,17 +105,74 @@ export function DashboardViews({
                 </p>
             </div>
 
-            {/* Stats Grid */}
-            {isPending ? (
-                <StatsGridSkeleton />
-            ) : (
-                <StatsGrid
-                    stats={stats}
-                    currencySymbol={currencySymbol}
-                    currencyCode={currencyCode}
-                    avgDivisor={avgDivisor}
-                />
-            )}
+                {/* Enhanced Stats Cards */}
+                {isPending ? (
+                    <StatsGridSkeleton />
+                ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 sm:mb-8">
+                        <EnhancedStatsCard
+                            title="Total Income"
+                            value={stats.totalIncome}
+                            currencySymbol={currencySymbol}
+                            currencyCode={currencyCode}
+                            icon={
+                                <svg className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            }
+                            bgColor="bg-gradient-to-br from-green-100 to-green-200"
+                            textColor="text-green-600"
+                            explanation="Total earnings received during this period"
+                            period={selectedDate ? 'Daily' : 'Monthly'}
+                        />
+                        <EnhancedStatsCard
+                            title="Total Expenses"
+                            value={stats.totalExpense}
+                            currencySymbol={currencySymbol}
+                            currencyCode={currencyCode}
+                            icon={
+                                <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                </svg>
+                            }
+                            bgColor="bg-gradient-to-br from-red-100 to-red-200"
+                            textColor="text-red-600"
+                            explanation="Total money spent during this period"
+                            period={selectedDate ? 'Daily' : 'Monthly'}
+                        />
+                        <EnhancedStatsCard
+                            title="Actual Balance"
+                            value={stats.overallBalance !== undefined ? stats.overallBalance : stats.balance}
+                            currencySymbol={currencySymbol}
+                            currencyCode={currencyCode}
+                            icon={
+                                <svg className="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                                </svg>
+                            }
+                            bgColor="bg-gradient-to-br from-indigo-100 to-indigo-200"
+                            textColor={(stats.overallBalance !== undefined ? stats.overallBalance : stats.balance) >= 0 ? 'text-green-600' : 'text-red-600'}
+                            explanation="Actual total balance of all your income minus all your expenses (not affected by date filters)"
+                            period="All Time"
+                            showSign={true}
+                        />
+                        <EnhancedStatsCard
+                            title="Avg. Daily"
+                            value={avgDivisor > 0 ? stats.totalExpense / avgDivisor : 0}
+                            currencySymbol={currencySymbol}
+                            currencyCode={currencyCode}
+                            icon={
+                                <svg className="h-6 w-6 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                                </svg>
+                            }
+                            bgColor="bg-gradient-to-br from-slate-100 to-slate-200"
+                            textColor="text-gray-900"
+                            explanation="Average daily expenses based on total spending for the period"
+                            period={selectedDate ? 'Daily' : 'Monthly'}
+                        />
+                    </div>
+                )}
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 mb-6 sm:mb-8">
                 {/* Expenses by Category Chart */}

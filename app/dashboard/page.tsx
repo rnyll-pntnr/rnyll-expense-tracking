@@ -21,7 +21,7 @@ export default async function DashboardPage() {
 
     // Initial server fetch for current month
     const [statsResult, recentResult, categoryResult, settingsResult, dailyExpensesResult] = await Promise.all([
-        getTransactionStats({ startDate: monthStart, endDate: monthEnd }),
+        getTransactionStats({ startDate: monthStart, endDate: monthEnd }, { includeOverallBalance: true }),
         getTransactions({ limit: 5 }),
         getExpensesByCategory({ startDate: monthStart, endDate: monthEnd }),
         getUserSettings(),

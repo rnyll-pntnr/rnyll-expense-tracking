@@ -66,6 +66,7 @@ export interface TransactionStats {
     totalExpense: number
     balance: number
     transactionCount: number
+    overallBalance?: number
 }
 
 export interface UserSettings {

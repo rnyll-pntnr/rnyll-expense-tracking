@@ -7,6 +7,7 @@ import { IconRenderer } from '@/components/icon-helper'
 import { deleteTransaction } from '@/app/actions/transactions'
 import type { TransactionWithCategory } from '@/types'
 import { useCurrency } from '@/hooks/useCurrency'
+import { formatCurrency, getRelativeTime } from '@/lib/formatting'
 import toast from 'react-hot-toast'
 
 interface TransactionListProps {
@@ -130,7 +131,7 @@ export function TransactionList({ transactions, onEdit, onUpdate, selectedIds = 
                                             {formatCurrency(Number(transaction.amount))}
                                         </p>
                                         <p className="text-sm text-gray-500">
-                                            {format(new Date(transaction.date), 'MMM dd, yyyy HH:mm')}
+                                            {getRelativeTime(transaction.date)}
                                         </p>
                                     </div>
                                     <div className="flex items-center gap-2">

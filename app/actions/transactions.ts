@@ -189,7 +189,9 @@ export async function getTransactions(filters?: TransactionFilters): Promise<{
 export async function getTransactionStats(dateRange?: {
     startDate?: string
     endDate?: string
-}): Promise<{ data: TransactionStats | null; error: string | null }> {
+}, options?: {
+    includeOverallBalance?: boolean
+}): Promise<{ data: TransactionStats & { overallBalance?: number } | null; error: string | null }> {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
@@ -197,6 +199,7 @@ export async function getTransactionStats(dateRange?: {
         return { data: null, error: 'Unauthorized' }
     }
 
+    // Fetch filtered stats
     let query = supabase
         .from('transactions')
         .select('type, amount, date')
@@ -210,13 +213,33 @@ export async function getTransactionStats(dateRange?: {
         query = query.lte('date', dateRange.endDate)
     }
 
+    // If we need overall balance, fetch all transactions without date filters
+    let overallBalance: number | undefined
+    if (options?.includeOverallBalance) {
+        const allTransactionsQuery = supabase
+            .from('transactions')
+            .select('type, amount')
+            .eq('user_id', user.id)
+        
+        const { data: allTransactions, error: allTransactionsError } = await allTransactionsQuery
+        if (!allTransactionsError && allTransactions) {
+            overallBalance = allTransactions.reduce((sum, transaction) => {
+                if (transaction.type === 'income') {
+                    return sum + Number(transaction.amount)
+                } else {
+                    return sum - Number(transaction.amount)
+                }
+            }, 0)
+        }
+    }
+
     const { data, error } = await query
 
     if (error) {
         return { data: null, error: error.message }
     }
 
-    const stats: TransactionStats = {
+    const stats: TransactionStats & { overallBalance?: number } = {
         totalIncome: 0,
         totalExpense: 0,
         balance: 0,
@@ -231,7 +254,14 @@ export async function getTransactionStats(dateRange?: {
         }
     })
 
-    stats.balance = stats.totalIncome - stats.totalExpense
+    // If including overall balance, use that instead of filtered balance
+    stats.balance = options?.includeOverallBalance && overallBalance !== undefined 
+        ? overallBalance 
+        : stats.totalIncome - stats.totalExpense
+
+    if (options?.includeOverallBalance) {
+        stats.overallBalance = overallBalance
+    }
 
     return { data: stats, error: null }
 }
@@ -344,4 +374,92 @@ export async function getDailyExpenses(dateRange?: {
     })
 
     return { data: Object.fromEntries(dailyMap), error: null }
+}
+
+import { format } from 'date-fns'
+
+export async function getMonthlyTrends(): Promise<{ 
+    data: Array<{ month: string; income: number; expenses: number; balance: number }> | null; 
+    error: string | null 
+}> {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+        return { data: null, error: 'Unauthorized' }
+    }
+
+    // Get last 12 months of data
+    const now = new Date()
+    const months = []
+    
+    for (let i = 11; i >= 0; i--) {
+        const date = new Date(now.getFullYear(), now.getMonth() - i, 1)
+        const monthStr = format(date, 'yyyy-MM')
+        const monthName = format(date, 'MMM yyyy')
+        
+        const monthStart = format(date, 'yyyy-MM-01')
+        const monthEnd = format(new Date(date.getFullYear(), date.getMonth() + 1, 0), 'yyyy-MM-dd')
+        
+        const { data: transactions, error } = await supabase
+            .from('transactions')
+            .select('type, amount')
+            .eq('user_id', user.id)
+            .gte('date', monthStart)
+            .lte('date', monthEnd)
+        
+        if (error) {
+            return { data: null, error: error.message }
+        }
+        
+        const income = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + Number(t.amount), 0)
+        const expenses = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + Number(t.amount), 0)
+        
+        months.push({
+            month: monthName,
+            income,
+            expenses,
+            balance: income - expenses
+        })
+    }
+    
+    return { data: months, error: null }
+}
+
+export async function getSpendingComparison(dateRange1?: { startDate?: string; endDate?: string }, dateRange2?: { startDate?: string; endDate?: string }): Promise<{ 
+    data: { current: TransactionStats; previous: TransactionStats; change: { income: number; expenses: number; balance: number } } | null; 
+    error: string | null 
+}> {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+        return { data: null, error: 'Unauthorized' }
+    }
+
+    const [currentStatsResult, previousStatsResult] = await Promise.all([
+        getTransactionStats(dateRange1),
+        getTransactionStats(dateRange2)
+    ])
+
+    if (currentStatsResult.error || previousStatsResult.error) {
+        return { 
+            data: null, 
+            error: currentStatsResult.error || previousStatsResult.error 
+        }
+    }
+
+    const current = currentStatsResult.data || { totalIncome: 0, totalExpense: 0, balance: 0, transactionCount: 0 }
+    const previous = previousStatsResult.data || { totalIncome: 0, totalExpense: 0, balance: 0, transactionCount: 0 }
+
+    const change = {
+        income: previous.totalIncome > 0 ? ((current.totalIncome - previous.totalIncome) / previous.totalIncome) * 100 : 0,
+        expenses: previous.totalExpense > 0 ? ((current.totalExpense - previous.totalExpense) / previous.totalExpense) * 100 : 0,
+        balance: previous.balance > 0 ? ((current.balance - previous.balance) / previous.balance) * 100 : 0
+    }
+
+    return { 
+        data: { current, previous, change }, 
+        error: null 
+    }
 }

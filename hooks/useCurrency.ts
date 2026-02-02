@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { getCurrencyInfo, formatCurrency as formatCurrencyUtil } from '@/lib/currencies'
+import { getCurrencyInfo } from '@/lib/currencies'
+import { formatCurrency } from '@/lib/formatting'
 import { getUserSettings } from '@/app/actions/settings'
 import type { UserSettings } from '@/types'
 
@@ -42,8 +43,8 @@ export function useCurrency() {
         loadCurrencySettings()
     }, [])
 
-    const formatCurrency = (amount: number) => {
-        return formatCurrencyUtil(amount, currencyCode)
+    const formatCurrencyWithCode = (amount: number) => {
+        return formatCurrency(amount, currencyCode)
     }
 
     return {
@@ -51,6 +52,6 @@ export function useCurrency() {
         currencyCode,
         loading,
         error,
-        formatCurrency,
+        formatCurrency: formatCurrencyWithCode,
     }
 }

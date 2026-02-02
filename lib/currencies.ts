@@ -18,7 +18,15 @@ export function getCurrencyInfo(code: string) {
     return CURRENCIES.find(c => c.code === code) || CURRENCIES[0]
 }
 
-export function formatCurrency(amount: number, code: string = 'USD'): string {
+export function formatCurrency(
+    amount: number, 
+    code: string = 'USD', 
+    options: {
+        minimumFractionDigits?: number
+        maximumFractionDigits?: number
+        style?: 'decimal' | 'currency'
+    } = {}
+): string {
     // Get currency info to determine locale
     const currency = getCurrencyInfo(code)
 
@@ -42,12 +50,14 @@ export function formatCurrency(amount: number, code: string = 'USD'): string {
 
     try {
         return new Intl.NumberFormat(locale, {
-            style: 'decimal',
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
+            style: options.style || 'decimal',
+            currency: code,
+            minimumFractionDigits: options.minimumFractionDigits ?? 2,
+            maximumFractionDigits: options.maximumFractionDigits ?? 2
         }).format(amount)
     } catch (error) {
         // Fallback to basic formatting if Intl is not available
-        return amount.toFixed(2)
+        const digits = options.maximumFractionDigits ?? 2
+        return amount.toFixed(digits)
     }
 }
