@@ -74,10 +74,10 @@ export function TransactionList({ transactions, onEdit, onUpdate, selectedIds = 
                 {transactions.map((transaction) => (
                     <li key={transaction.id}>
                         <div
-                            className={`px-4 py-4 sm:px-6 hover:bg-slate-50/80 transition-all duration-200 ${expandedId === transaction.id ? 'bg-slate-50' : ''}`}
+                            className={`px-3 py-3 sm:px-4 sm:py-4 hover:bg-slate-50/80 transition-all duration-200 ${expandedId === transaction.id ? 'bg-slate-50' : ''}`}
                         >
                             <div className="flex flex-col gap-3">
-                                <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-2 sm:gap-3">
                                     {/* Selection checkbox */}
                                     {onSelectOne && (
                                         <input
@@ -88,18 +88,18 @@ export function TransactionList({ transactions, onEdit, onUpdate, selectedIds = 
                                         />
                                     )}
                                     <div
-                                        className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center shadow-sm"
+                                        className="shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shadow-sm"
                                         style={{ backgroundColor: (transaction.category?.color || '#6b7280') + '20' }}
                                     >
                                         {transaction.category ? (
                                             <IconRenderer
                                                 icon={transaction.category.icon}
-                                                className="h-5 w-5"
+                                                className="h-4 w-4 sm:h-5 sm:w-5"
                                                 style={{ color: transaction.category.color }}
                                             />
                                         ) : (
                                             <span
-                                                className="text-lg"
+                                                className="text-sm sm:text-lg"
                                                 style={{ color: '#6b7280' }}
                                             >
                                                 {transaction.type === 'income' ? '↑' : '↓'}
@@ -113,7 +113,7 @@ export function TransactionList({ transactions, onEdit, onUpdate, selectedIds = 
                                             </p>
                                             {transaction.category && (
                                                 <span
-                                                    className="sm:inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
+                                                    className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
                                                     style={{
                                                         backgroundColor: transaction.category.color + '20',
                                                         color: transaction.category.color,
@@ -130,14 +130,14 @@ export function TransactionList({ transactions, onEdit, onUpdate, selectedIds = 
                                             {transaction.type === 'income' ? '+' : '-'}{currencySymbol}
                                             {formatCurrency(Number(transaction.amount))}
                                         </p>
-                                        <p className="text-sm text-gray-500">
+                                        <p className="text-xs sm:text-sm text-gray-500">
                                             {getRelativeTime(transaction.date)}
                                         </p>
                                     </div>
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-1 sm:gap-2">
                                         <button
                                             onClick={() => onEdit(transaction)}
-                                            className="p-2 rounded-lg hover:bg-slate-100 transition-all duration-200"
+                                            className="p-1.5 rounded-lg hover:bg-slate-100 transition-all duration-200"
                                             title="Edit"
                                         >
                                             <PencilIcon className="h-4 w-4 text-slate-600" />
@@ -145,7 +145,7 @@ export function TransactionList({ transactions, onEdit, onUpdate, selectedIds = 
                                         <button
                                             onClick={() => handleDelete(transaction.id)}
                                             disabled={deleting === transaction.id}
-                                            className="p-2 rounded-lg hover:bg-red-50 transition-all duration-200 disabled:opacity-50"
+                                            className="p-1.5 rounded-lg hover:bg-red-50 transition-all duration-200 disabled:opacity-50"
                                             title="Delete"
                                         >
                                             <TrashIcon className="h-4 w-4 text-red-500" />
@@ -155,7 +155,7 @@ export function TransactionList({ transactions, onEdit, onUpdate, selectedIds = 
                                 {/* Expanded details */}
                                 {expandedId === transaction.id && (
                                     <div className="mt-3 pt-3 border-t border-slate-100 text-sm">
-                                        <div className="grid grid-cols-2 gap-3 text-gray-600">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 text-gray-600">
                                             <div>
                                                 <span className="font-medium text-gray-900">Type:</span> {transaction.type === 'income' ? 'Income' : 'Expense'}
                                             </div>

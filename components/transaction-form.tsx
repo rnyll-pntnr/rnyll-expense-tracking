@@ -157,7 +157,7 @@ export function TransactionForm({ isOpen, onClose, transaction, onSuccess }: Tra
                             leaveFrom="opacity-100 scale-100"
                             leaveTo="opacity-0 scale-95"
                         >
-                            <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white/95 backdrop-blur-sm p-4 sm:p-6 text-left align-middle shadow-xl shadow-slate-200/50 border border-slate-100 transition-all">
+                            <Dialog.Panel className="w-full max-w-full sm:max-w-md transform overflow-hidden rounded-2xl bg-white/95 backdrop-blur-sm p-3 sm:p-4 text-left align-middle shadow-xl shadow-slate-200/50 border border-slate-100 transition-all">
                                 {!dataLoaded ? (
                                     <div className="flex items-center justify-center py-12">
                                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>

@@ -58,7 +58,7 @@ export function DashboardViews({
         fetchData(month, null)
     }
 
-     const fetchData = (month: Date, date: Date | null) => {
+    const fetchData = (month: Date, date: Date | null) => {
         startTransition(async () => {
             let statsStart, statsEnd
             const calendarStart = format(startOfMonth(month), 'yyyy-MM-dd')

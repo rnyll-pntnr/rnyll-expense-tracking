@@ -36,7 +36,7 @@ export function ExpenseByCategory({
     return (
         <div className="w-full">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">{title}</h3>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={250} minHeight={200}>
                 <PieChart>
                     <Pie
                         data={data}
@@ -44,7 +44,7 @@ export function ExpenseByCategory({
                         cy="50%"
                         labelLine={false}
                         label={({ name, percent }) => `${name} ${(percent! * 100).toFixed(0)}%`}
-                        outerRadius={100}
+                        outerRadius={80}
                         fill="#8884d8"
                         dataKey="value"
                     >
@@ -53,14 +53,14 @@ export function ExpenseByCategory({
                         ))}
                     </Pie>
                     <Tooltip formatter={(value: number | undefined) => formatCurrency(value!, currencyCode, { showSymbol: true })} />
-                    <Legend />
+                    <Legend wrapperStyle={{ fontSize: '12px' }} />
                 </PieChart>
             </ResponsiveContainer>
             <div className="mt-4 text-sm text-gray-600">
                 <p>Total expenses: <span className="font-medium">{formatCurrency(total, currencyCode, { showSymbol: true })}</span></p>
                 <p className="mt-1">Breakdown of expenses by category to identify spending patterns</p>
             </div>
-            <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
                 {data.map((category, index) => (
                     <div key={index} className="flex items-center justify-between">
                         <div className="flex items-center gap-2">

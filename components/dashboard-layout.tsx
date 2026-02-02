@@ -34,11 +34,11 @@ function DashboardLayoutContent({
             {/* Footer */}
             <footer className={`
                 transition-all duration-300
-                pt-4 pb-6 px-4 sm:px-6
+                pt-4 pb-6 px-3 sm:px-4 lg:px-6
                 ${collapsed ? 'lg:pl-20' : 'lg:pl-72'}
                 bg-linear-to-r from-slate-50 to-slate-100 border-t border-slate-200
             `}>
-                <div className="max-w-8xl mx-auto text-center text-sm text-gray-500">
+                <div className="max-w-8xl mx-auto text-center text-xs sm:text-sm text-gray-500">
                     <p>&copy; {new Date().getFullYear()} Expense Tracking made by Ranyll Puntanar. All rights reserved.</p>
                 </div>
             </footer>
