@@ -2,21 +2,22 @@
 
 import { useState, useTransition } from 'react'
 import { format, startOfMonth, endOfMonth, startOfYear, endOfYear, subDays, subMonths } from 'date-fns'
-import { 
-    getExpensesByCategory, 
-    getTransactionStats, 
-    getMonthlyTrends, 
-    getSpendingComparison 
+import {
+    getExpensesByCategory,
+    getTransactionStats,
+    getMonthlyTrends,
+    getSpendingComparison
 } from '@/app/actions/transactions'
 import { ExpenseByCategory } from '@/components/charts/expense-by-category'
 import { SpendingTrendChart } from '@/components/charts/spending-trend-chart'
 import { IncomeExpenseChart } from '@/components/charts/income-expense-chart'
 import { EnhancedStatsCard } from '@/components/dashboard/enhanced-stats-card'
 import { DateRangeSelector } from '@/components/dashboard/date-range-selector'
-import { 
-    StatsGridSkeleton, 
+import {
+    StatsGridSkeleton,
     CategoryChartSkeleton,
-    ChartSkeleton
+    ChartSkeleton,
+    PeriodComparisonSkeleton
 } from '@/components/skeletons'
 
 type DateRange = '7d' | '30d' | '90d' | 'ytd' | 'custom'
@@ -34,49 +35,96 @@ interface ReportsClientProps {
 }
 
 export function ReportsClient({ initialData, user }: ReportsClientProps) {
-    const [selectedRange, setSelectedRange] = useState<DateRange>('30d')
+    const [selectedRange, setSelectedRange] = useState<DateRange>('custom')
+    const [customStartDate, setCustomStartDate] = useState<string>('')
+    const [customEndDate, setCustomEndDate] = useState<string>('')
     const [stats, setStats] = useState(initialData.stats)
     const [categoryData, setCategoryData] = useState(initialData.categoryData)
     const [trendData, setTrendData] = useState(initialData.trendData)
     const [comparisonData, setComparisonData] = useState(initialData.comparisonData)
     const [isPending, startTransition] = useTransition()
 
+    // Set default custom range to last month and current month
+    const now = new Date()
+    const currentMonthStart = startOfMonth(now)
+    const currentMonthEnd = endOfMonth(now)
+    const previousMonthStart = startOfMonth(subMonths(now, 1))
+    const previousMonthEnd = endOfMonth(subMonths(now, 1))
+
+    const defaultCustomStart = format(previousMonthStart, 'yyyy-MM-dd')
+    const defaultCustomEnd = format(currentMonthEnd, 'yyyy-MM-dd')
+
     const fetchData = async (range: DateRange, customStart?: string, customEnd?: string) => {
         startTransition(async () => {
             let startDate, endDate
-            const now = new Date()
 
-            switch (range) {
-                case '7d':
-                    startDate = format(subDays(now, 6), 'yyyy-MM-dd')
-                    endDate = format(now, 'yyyy-MM-dd')
-                    break
-                case '30d':
-                    startDate = format(subDays(now, 29), 'yyyy-MM-dd')
-                    endDate = format(now, 'yyyy-MM-dd')
-                    break
-                case '90d':
-                    startDate = format(subDays(now, 89), 'yyyy-MM-dd')
-                    endDate = format(now, 'yyyy-MM-dd')
-                    break
-                case 'ytd':
-                    startDate = format(startOfYear(now), 'yyyy-MM-dd')
-                    endDate = format(now, 'yyyy-MM-dd')
-                    break
-                case 'custom':
-                    if (customStart && customEnd) {
-                        startDate = customStart
-                        endDate = customEnd
-                    }
-                    break
+            if (range === 'custom' && customStart && customEnd) {
+                startDate = customStart
+                endDate = customEnd
+            } else {
+                // For all other ranges, use their default behavior
+                const currentNow = new Date()
+                switch (range) {
+                    case '7d':
+                        startDate = format(subDays(currentNow, 6), 'yyyy-MM-dd')
+                        endDate = format(currentNow, 'yyyy-MM-dd')
+                        break
+                    case '30d':
+                        startDate = format(startOfMonth(currentNow), 'yyyy-MM-dd')
+                        endDate = format(endOfMonth(currentNow), 'yyyy-MM-dd')
+                        break
+                    case '90d':
+                        startDate = format(subMonths(startOfMonth(currentNow), 2), 'yyyy-MM-dd')
+                        endDate = format(endOfMonth(currentNow), 'yyyy-MM-dd')
+                        break
+                    case 'ytd':
+                        startDate = format(startOfYear(currentNow), 'yyyy-MM-dd')
+                        endDate = format(currentNow, 'yyyy-MM-dd')
+                        break
+                    default:
+                        // Default to custom range (last month + current month)
+                        startDate = defaultCustomStart
+                        endDate = defaultCustomEnd
+                }
             }
 
             if (!startDate || !endDate) return
 
-            // Calculate previous period for comparison
-            const periodLength = new Date(endDate).getTime() - new Date(startDate).getTime()
-            const previousStart = format(new Date(new Date(startDate).getTime() - periodLength - 86400000), 'yyyy-MM-dd')
-            const previousEnd = format(new Date(new Date(startDate).getTime() - 86400000), 'yyyy-MM-dd')
+            // Calculate comparison period based on selected range
+            let comparisonCurrentStart, comparisonCurrentEnd, comparisonPreviousStart, comparisonPreviousEnd
+
+            if (range === '30d') {
+                // For monthly comparison, use previous calendar month
+                comparisonCurrentStart = format(startOfMonth(now), 'yyyy-MM-dd')
+                comparisonCurrentEnd = format(endOfMonth(now), 'yyyy-MM-dd')
+                comparisonPreviousStart = format(startOfMonth(subMonths(now, 1)), 'yyyy-MM-dd')
+                comparisonPreviousEnd = format(endOfMonth(subMonths(now, 1)), 'yyyy-MM-dd')
+            } else if (range === '90d') {
+                // For quarterly comparison, use previous 3 months
+                comparisonCurrentStart = format(subMonths(startOfMonth(now), 2), 'yyyy-MM-dd')
+                comparisonCurrentEnd = format(endOfMonth(now), 'yyyy-MM-dd')
+                comparisonPreviousStart = format(subMonths(startOfMonth(now), 5), 'yyyy-MM-dd')
+                comparisonPreviousEnd = format(endOfMonth(subMonths(now, 3)), 'yyyy-MM-dd')
+            } else if (range === 'ytd') {
+                // For YTD comparison, use previous year's YTD
+                comparisonCurrentStart = format(startOfYear(now), 'yyyy-MM-dd')
+                comparisonCurrentEnd = format(now, 'yyyy-MM-dd')
+                comparisonPreviousStart = format(startOfYear(subMonths(now, 12)), 'yyyy-MM-dd')
+                comparisonPreviousEnd = format(subMonths(now, 12), 'yyyy-MM-dd')
+            } else if (range === '7d') {
+                // For weekly comparison, use previous week
+                comparisonCurrentStart = format(subDays(now, 6), 'yyyy-MM-dd')
+                comparisonCurrentEnd = format(now, 'yyyy-MM-dd')
+                comparisonPreviousStart = format(subDays(now, 13), 'yyyy-MM-dd')
+                comparisonPreviousEnd = format(subDays(now, 7), 'yyyy-MM-dd')
+            } else {
+                // For custom range, calculate previous period of same length
+                const periodLength = new Date(endDate).getTime() - new Date(startDate).getTime()
+                comparisonCurrentStart = startDate
+                comparisonCurrentEnd = endDate
+                comparisonPreviousStart = format(new Date(new Date(startDate).getTime() - periodLength - 86400000), 'yyyy-MM-dd')
+                comparisonPreviousEnd = format(new Date(new Date(startDate).getTime() - 86400000), 'yyyy-MM-dd')
+            }
 
             const [
                 statsResult,
@@ -88,16 +136,16 @@ export function ReportsClient({ initialData, user }: ReportsClientProps) {
                 getExpensesByCategory({ startDate, endDate }),
                 getMonthlyTrends(),
                 getSpendingComparison(
-                    { startDate, endDate },
-                    { startDate: previousStart, endDate: previousEnd }
+                    { startDate: comparisonCurrentStart, endDate: comparisonCurrentEnd },
+                    { startDate: comparisonPreviousStart, endDate: comparisonPreviousEnd }
                 )
             ])
 
-            setStats(statsResult.data || { 
-                totalIncome: 0, 
-                totalExpense: 0, 
-                balance: 0, 
-                transactionCount: 0 
+            setStats(statsResult.data || {
+                totalIncome: 0,
+                totalExpense: 0,
+                balance: 0,
+                transactionCount: 0
             })
             setCategoryData(categoryResult.data || [])
             setTrendData(trendsResult.data || [])
@@ -112,6 +160,8 @@ export function ReportsClient({ initialData, user }: ReportsClientProps) {
 
     const handleCustomRange = (startDate: string, endDate: string) => {
         setSelectedRange('custom')
+        setCustomStartDate(startDate)
+        setCustomEndDate(endDate)
         fetchData('custom', startDate, endDate)
     }
 
@@ -130,6 +180,8 @@ export function ReportsClient({ initialData, user }: ReportsClientProps) {
                     selectedRange={selectedRange}
                     onRangeChange={handleRangeChange}
                     onCustomRange={handleCustomRange}
+                    defaultCustomStart={defaultCustomStart}
+                    defaultCustomEnd={defaultCustomEnd}
                 />
 
                 {/* Enhanced Stats Cards */}
@@ -152,6 +204,7 @@ export function ReportsClient({ initialData, user }: ReportsClientProps) {
                             textColor="text-green-600"
                             subText={comparisonData ? 'Increased from previous period' : 'No comparison data available'}
                             period={selectedRange.toUpperCase()}
+                            metricType="income"
                         />
                         <EnhancedStatsCard
                             title="Total Expenses"
@@ -168,6 +221,7 @@ export function ReportsClient({ initialData, user }: ReportsClientProps) {
                             textColor="text-red-600"
                             subText={comparisonData ? 'Changed from previous period' : 'No comparison data available'}
                             period={selectedRange.toUpperCase()}
+                            metricType="expense"
                         />
                         <EnhancedStatsCard
                             title="Actual Balance"
@@ -184,6 +238,7 @@ export function ReportsClient({ initialData, user }: ReportsClientProps) {
                             explanation="Actual total balance of all your income minus all your expenses (not affected by date filters)"
                             period="All Time"
                             showSign={true}
+                            metricType="balance"
                         />
                     </div>
                 )}
@@ -233,40 +288,39 @@ export function ReportsClient({ initialData, user }: ReportsClientProps) {
                 </div>
 
                 {/* Comparison Insights */}
-                {comparisonData && (
+                {isPending ? (
+                    <PeriodComparisonSkeleton />
+                ) : comparisonData ? (
                     <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-100 shadow-lg shadow-slate-200/50 p-4 sm:p-6">
                         <h3 className="text-lg font-semibold text-gray-900 mb-4">Period Comparison</h3>
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <div className="text-center">
                                 <p className="text-sm font-medium text-gray-600 mb-1">Income Change</p>
-                                <p className={`text-2xl font-bold ${
-                                    comparisonData.change.income >= 0 ? 'text-green-600' : 'text-red-600'
-                                }`}>
+                                <p className={`text-2xl font-bold ${comparisonData.change.income >= 0 ? 'text-green-600' : 'text-red-600'
+                                    }`}>
                                     {comparisonData.change.income >= 0 ? '+' : ''}{comparisonData.change.income.toFixed(1)}%
                                 </p>
                                 <p className="text-xs text-gray-500">vs previous period</p>
                             </div>
                             <div className="text-center">
                                 <p className="text-sm font-medium text-gray-600 mb-1">Expenses Change</p>
-                                <p className={`text-2xl font-bold ${
-                                    comparisonData.change.expenses >= 0 ? 'text-red-600' : 'text-green-600'
-                                }`}>
+                                <p className={`text-2xl font-bold ${comparisonData.change.expenses >= 0 ? 'text-red-600' : 'text-green-600'
+                                    }`}>
                                     {comparisonData.change.expenses >= 0 ? '+' : ''}{comparisonData.change.expenses.toFixed(1)}%
                                 </p>
                                 <p className="text-xs text-gray-500">vs previous period</p>
                             </div>
                             <div className="text-center">
                                 <p className="text-sm font-medium text-gray-600 mb-1">Balance Change</p>
-                                <p className={`text-2xl font-bold ${
-                                    comparisonData.change.balance >= 0 ? 'text-green-600' : 'text-red-600'
-                                }`}>
+                                <p className={`text-2xl font-bold ${comparisonData.change.balance >= 0 ? 'text-green-600' : 'text-red-600'
+                                    }`}>
                                     {comparisonData.change.balance >= 0 ? '+' : ''}{comparisonData.change.balance.toFixed(1)}%
                                 </p>
                                 <p className="text-xs text-gray-500">vs previous period</p>
                             </div>
                         </div>
                     </div>
-                )}
+                ) : null}
             </div>
         </div>
     )

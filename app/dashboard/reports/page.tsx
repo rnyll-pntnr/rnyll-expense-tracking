@@ -1,11 +1,11 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { DashboardLayout } from '@/components/dashboard-layout'
-import { 
-    getExpensesByCategory, 
-    getTransactionStats, 
-    getMonthlyTrends, 
-    getSpendingComparison 
+import {
+    getExpensesByCategory,
+    getTransactionStats,
+    getMonthlyTrends,
+    getSpendingComparison
 } from '@/app/actions/transactions'
 import { getUserSettings } from '@/app/actions/settings'
 import { getCurrencyInfo, formatCurrency } from '@/lib/currencies'
@@ -21,8 +21,10 @@ export default async function ReportsPage() {
     }
 
     const now = new Date()
-    const defaultStartDate = format(subDays(now, 29), 'yyyy-MM-dd')
-    const defaultEndDate = format(now, 'yyyy-MM-dd')
+    const currentMonthStart = startOfMonth(now)
+    const currentMonthEnd = endOfMonth(now)
+    const previousMonthStart = startOfMonth(subMonths(now, 1))
+    const previousMonthEnd = endOfMonth(subMonths(now, 1))
 
     const [
         statsResult,
@@ -31,14 +33,23 @@ export default async function ReportsPage() {
         comparisonResult,
         settingsResult
     ] = await Promise.all([
-        getTransactionStats({ startDate: defaultStartDate, endDate: defaultEndDate }, { includeOverallBalance: true }),
-        getExpensesByCategory({ startDate: defaultStartDate, endDate: defaultEndDate }),
+        getTransactionStats({
+            startDate: format(previousMonthStart, 'yyyy-MM-dd'),
+            endDate: format(currentMonthEnd, 'yyyy-MM-dd')
+        }, { includeOverallBalance: true }),
+        getExpensesByCategory({
+            startDate: format(previousMonthStart, 'yyyy-MM-dd'),
+            endDate: format(currentMonthEnd, 'yyyy-MM-dd')
+        }),
         getMonthlyTrends(),
         getSpendingComparison(
-            { startDate: defaultStartDate, endDate: defaultEndDate },
-            { 
-                startDate: format(subDays(now, 59), 'yyyy-MM-dd'), 
-                endDate: format(subDays(now, 30), 'yyyy-MM-dd') 
+            {
+                startDate: format(currentMonthStart, 'yyyy-MM-dd'),
+                endDate: format(currentMonthEnd, 'yyyy-MM-dd')
+            },
+            {
+                startDate: format(previousMonthStart, 'yyyy-MM-dd'),
+                endDate: format(previousMonthEnd, 'yyyy-MM-dd')
             }
         ),
         getUserSettings()
@@ -49,11 +60,11 @@ export default async function ReportsPage() {
     const currencyCode = settingsResult.data?.currency || 'USD'
 
     const initialData = {
-        stats: statsResult.data || { 
-            totalIncome: 0, 
-            totalExpense: 0, 
-            balance: 0, 
-            transactionCount: 0 
+        stats: statsResult.data || {
+            totalIncome: 0,
+            totalExpense: 0,
+            balance: 0,
+            transactionCount: 0
         },
         categoryData: categoryResult.data || [],
         trendData: trendsResult.data || [],
@@ -64,7 +75,7 @@ export default async function ReportsPage() {
 
     return (
         <DashboardLayout userEmail={user.email} userName={user.user_metadata.name}>
-            <ReportsClient 
+            <ReportsClient
                 initialData={initialData}
                 user={user}
             />

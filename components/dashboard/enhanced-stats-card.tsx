@@ -15,28 +15,58 @@ interface EnhancedStatsCardProps {
     period?: string
     explanation?: string // Added for detailed metric explanation
     showSign?: boolean // Added to show positive/negative sign for balance
+    metricType?: 'income' | 'expense' | 'balance' // Added to determine trend color logic
 }
 
-export function EnhancedStatsCard({ 
-    title, 
-    value, 
-    currencySymbol, 
-    currencyCode, 
-    icon, 
-    trend, 
-    trendType = 'neutral', 
-    bgColor, 
+export function EnhancedStatsCard({
+    title,
+    value,
+    currencySymbol,
+    currencyCode,
+    icon,
+    trend,
+    trendType = 'neutral',
+    bgColor,
     textColor,
     subText,
     period,
     explanation,
-    showSign = false
+    showSign = false,
+    metricType = 'balance'
 }: EnhancedStatsCardProps) {
-    const { value: trendValue, isPositive, isNegative } = trend !== undefined 
-        ? formatPercentageChange(trend) 
+    const { value: trendValue, isPositive, isNegative } = trend !== undefined
+        ? formatPercentageChange(trend)
         : { value: '', isPositive: false, isNegative: false }
 
-    let formattedValue = value >= 1000 
+    // Determine trend colors based on metric type
+    const getTrendColors = () => {
+        if (metricType === 'income') {
+            // For income: green for positive (up), red for negative (down)
+            return {
+                bgColor: isPositive ? 'bg-green-100' : isNegative ? 'bg-red-100' : 'bg-gray-100',
+                textColor: isPositive ? 'text-green-700' : isNegative ? 'text-red-700' : 'text-gray-700',
+                iconColor: isPositive ? 'text-green-600' : isNegative ? 'text-red-600' : 'text-gray-600'
+            }
+        } else if (metricType === 'expense') {
+            // For expenses: red for positive (up), green for negative (down)
+            return {
+                bgColor: isPositive ? 'bg-red-100' : isNegative ? 'bg-green-100' : 'bg-gray-100',
+                textColor: isPositive ? 'text-red-700' : isNegative ? 'text-green-700' : 'text-gray-700',
+                iconColor: isPositive ? 'text-red-600' : isNegative ? 'text-green-600' : 'text-gray-600'
+            }
+        } else {
+            // For balance: green for positive, red for negative
+            return {
+                bgColor: isPositive ? 'bg-green-100' : isNegative ? 'bg-red-100' : 'bg-gray-100',
+                textColor: isPositive ? 'text-green-700' : isNegative ? 'text-red-700' : 'text-gray-700',
+                iconColor: isPositive ? 'text-green-600' : isNegative ? 'text-red-600' : 'text-gray-600'
+            }
+        }
+    }
+
+    const trendColors = getTrendColors()
+
+    let formattedValue = value >= 1000
         ? formatLargeNumber(value, currencyCode, { showSymbol: true })
         : formatCurrency(value, currencyCode, { showSymbol: true })
 
@@ -63,13 +93,7 @@ export function EnhancedStatsCard({
                             {formattedValue}
                         </span>
                         {trend !== undefined && (
-                            <span className={
-                                isPositive 
-                                    ? 'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700' 
-                                    : isNegative 
-                                    ? 'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700'
-                                    : 'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700'
-                            }>
+                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${trendColors.bgColor} ${trendColors.textColor}`}>
                                 {trendValue}
                                 <span className="ml-1">
                                     {isPositive ? (

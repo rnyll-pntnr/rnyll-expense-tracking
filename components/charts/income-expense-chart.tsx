@@ -14,9 +14,9 @@ interface IncomeExpenseChartProps {
     title?: string
 }
 
-export function IncomeExpenseChart({ 
-    data, 
-    currencySymbol = '$', 
+export function IncomeExpenseChart({
+    data,
+    currencySymbol = '$',
     currencyCode = 'USD',
     title = 'Income vs Expenses'
 }: IncomeExpenseChartProps) {
@@ -45,47 +45,56 @@ export function IncomeExpenseChart({
                     margin={{ top: 5, right: 10, left: 10, bottom: 5 }}
                 >
                     <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                    <XAxis 
-                        dataKey="month" 
+                    <XAxis
+                        dataKey="month"
                         stroke="#6b7280"
                         style={{ fontSize: '11px' }}
                         label={{ value: 'Month', position: 'insideBottom', offset: -10 }}
                     />
-                    <YAxis 
+                    <YAxis
                         stroke="#6b7280"
                         style={{ fontSize: '11px' }}
                         tickFormatter={(value) => `${currencySymbol}${value}`}
                         label={{ value: 'Amount', angle: -90, position: 'insideLeft' }}
                     />
-                <Tooltip 
-                    contentStyle={{ 
-                        backgroundColor: 'white', 
-                        border: '1px solid #e5e7eb',
-                        borderRadius: '8px',
-                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                        fontSize: '12px'
-                    }}
-                    formatter={(value: number | undefined) => 
-                        value !== undefined ? formatCurrency(value, currencyCode, { showSymbol: true }) : '-'
-                    }
-                    labelStyle={{ fontWeight: '600', marginBottom: '4px' }}
-                />
-                    <Legend 
-                        wrapperStyle={{ paddingTop: '10px', fontSize: '12px' }}
+                    <Tooltip
+                        contentStyle={{
+                            backgroundColor: 'white',
+                            border: '1px solid #e5e7eb',
+                            borderRadius: '8px',
+                            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                            fontSize: '12px'
+                        }}
+                        formatter={(value: number | undefined) =>
+                            value !== undefined ? formatCurrency(value, currencyCode, { showSymbol: true }) : '-'
+                        }
+                        labelStyle={{ fontWeight: '600', marginBottom: '4px' }}
                     />
-                    <Bar 
-                        dataKey="income" 
-                        name="Income" 
+                    <Legend
+                        wrapperStyle={{ paddingTop: '10px', fontSize: '12px' }}
+                        formatter={(value, entry) => {
+                            return (
+                                <span style={{ color: value === 'Income' ? colors.income : colors.expenses }}>
+                                    {value}
+                                </span>
+                            )
+                        }}
+                    />
+                    <Bar
+                        dataKey="income"
+                        name="Income"
                         radius={[4, 4, 0, 0]}
+                        fill={colors.income}
                     >
                         {data.map((entry, index) => (
                             <Cell key={`cell-income-${index}`} fill={colors.income} />
                         ))}
                     </Bar>
-                    <Bar 
-                        dataKey="expenses" 
-                        name="Expenses" 
+                    <Bar
+                        dataKey="expenses"
+                        name="Expenses"
                         radius={[4, 4, 0, 0]}
+                        fill={colors.expenses}
                     >
                         {data.map((entry, index) => (
                             <Cell key={`cell-expenses-${index}`} fill={colors.expenses} />

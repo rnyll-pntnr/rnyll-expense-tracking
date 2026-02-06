@@ -58,3 +58,20 @@ export function ChartSkeleton() {
         </div>
     )
 }
+
+export function PeriodComparisonSkeleton() {
+    return (
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-100 shadow-lg shadow-slate-200/50 p-4 sm:p-6">
+            <div className="h-6 w-48 bg-slate-100 rounded animate-pulse mb-4" />
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {[...Array(3)].map((_, i) => (
+                    <div key={i} className="text-center">
+                        <div className="h-4 w-24 bg-slate-100 rounded animate-pulse mb-2 mx-auto" />
+                        <div className="h-8 w-20 bg-slate-100 rounded animate-pulse mb-2 mx-auto" />
+                        <div className="h-3 w-16 bg-slate-100 rounded animate-pulse mx-auto" />
+                    </div>
+                ))}
+            </div>
+        </div>
+    )
+}

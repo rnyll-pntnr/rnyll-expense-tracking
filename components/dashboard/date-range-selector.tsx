@@ -9,16 +9,20 @@ interface DateRangeSelectorProps {
     selectedRange: DateRange
     onRangeChange: (range: DateRange) => void
     onCustomRange: (startDate: string, endDate: string) => void
+    defaultCustomStart?: string
+    defaultCustomEnd?: string
 }
 
-export function DateRangeSelector({ 
-    selectedRange, 
-    onRangeChange, 
-    onCustomRange 
+export function DateRangeSelector({
+    selectedRange,
+    onRangeChange,
+    onCustomRange,
+    defaultCustomStart,
+    defaultCustomEnd
 }: DateRangeSelectorProps) {
     const [showCustomDatePicker, setShowCustomDatePicker] = useState(false)
-    const [startDate, setStartDate] = useState('')
-    const [endDate, setEndDate] = useState('')
+    const [startDate, setStartDate] = useState(defaultCustomStart || '')
+    const [endDate, setEndDate] = useState(defaultCustomEnd || '')
 
     const handleCustomSubmit = (e: React.FormEvent) => {
         e.preventDefault()
@@ -35,11 +39,10 @@ export function DateRangeSelector({
                     <button
                         key={range}
                         onClick={() => onRangeChange(range)}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                            selectedRange === range
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${selectedRange === range
                                 ? 'bg-indigo-600 text-white'
                                 : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
-                        }`}
+                            }`}
                     >
                         {range === '7d' && 'Last 7 Days'}
                         {range === '30d' && 'Last 30 Days'}
@@ -49,11 +52,10 @@ export function DateRangeSelector({
                 ))}
                 <button
                     onClick={() => setShowCustomDatePicker(!showCustomDatePicker)}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                        selectedRange === 'custom'
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${selectedRange === 'custom'
                             ? 'bg-indigo-600 text-white'
                             : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
-                    }`}
+                        }`}
                 >
                     Custom Range
                 </button>
