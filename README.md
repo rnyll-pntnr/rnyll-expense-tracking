@@ -68,7 +68,7 @@ A modern, full-stack expense tracking application built with Next.js, React, and
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/rnyll-pntnr/rnyll-expense-tracking.git
    cd expense-monitoring
    ```
 
@@ -163,14 +163,7 @@ Set up categories and regularly log transactions to:
 For freelancers and small business owners:
 - Track business expenses separately
 - Categorize by expense type
-- Generate reports for tax purposes
-- Export data for accounting
-
-### Multi-Currency Tracking
-If you travel frequently or have expenses in different currencies:
-- Log transactions in their original currency
-- View conversions in your base currency
-- Track exchange rate impact on spending
+- Generate reports
 
 ### Family Budgeting
 Share financial responsibilities by:

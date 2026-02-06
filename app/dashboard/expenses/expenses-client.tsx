@@ -172,7 +172,7 @@ export default function ExpensesPageClient({ userEmail }: { userEmail?: string }
                         currencySymbol={currencySymbol}
                         formatCurrency={formatCurrency}
                         period={
-                            filters.startDate && filters.endDate 
+                            filters.startDate && filters.endDate
                                 ? `${format(new Date(filters.startDate), 'MMM d')} - ${format(new Date(filters.endDate), 'MMM d, yyyy')}`
                                 : 'This Month'
                         }
@@ -292,9 +292,9 @@ export default function ExpensesPageClient({ userEmail }: { userEmail?: string }
                                         {[...Array(totalPages)].map((_, index) => {
                                             const page = index + 1
                                             const isActive = page === filters.page
-                                            const isVisible = 
-                                                page === 1 || 
-                                                page === totalPages || 
+                                            const isVisible =
+                                                page === 1 ||
+                                                page === totalPages ||
                                                 (page >= filters.page! - 1 && page <= filters.page! + 1)
 
                                             if (!isVisible) {
@@ -312,11 +312,10 @@ export default function ExpensesPageClient({ userEmail }: { userEmail?: string }
                                                 <button
                                                     key={page}
                                                     onClick={() => handlePageChange(page)}
-                                                    className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ring-1 ring-inset ring-gray-300 focus:outline-offset-0 ${
-                                                        isActive 
+                                                    className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ring-1 ring-inset ring-gray-300 focus:outline-offset-0 ${isActive
                                                             ? 'z-10 bg-indigo-600 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600'
                                                             : 'text-gray-900 hover:bg-gray-50'
-                                                    }`}
+                                                        }`}
                                                 >
                                                     {page}
                                                 </button>
@@ -344,6 +343,7 @@ export default function ExpensesPageClient({ userEmail }: { userEmail?: string }
                     onClose={handleCloseForm}
                     transaction={editingTransaction}
                     onSuccess={handleSuccess}
+                    preloadedCategories={categories}
                 />
             </div>
         </DashboardLayout>
