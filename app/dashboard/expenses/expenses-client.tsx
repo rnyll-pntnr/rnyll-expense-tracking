@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useTransition, Suspense } from 'react'
 import { DashboardLayout } from '@/components/dashboard-layout'
 import { TransactionForm } from '@/components/transaction-form'
 import { TransactionList } from '@/components/transaction-list'
@@ -17,12 +17,27 @@ import type { TransactionWithCategory, TransactionFilters as TFilters } from '@/
 
 const ITEMS_PER_PAGE = 10
 
-export default function ExpensesPageClient({ userEmail }: { userEmail?: string }) {
+interface InitialData {
+    transactions: TransactionWithCategory[]
+    totalCount: number
+    stats: any
+    categories: any[]
+    currencySymbol: string
+    currencyCode: string
+}
+
+export default function ExpensesPageClient({
+    userEmail,
+    initialData
+}: {
+    userEmail?: string
+    initialData?: InitialData
+}) {
     const [isFormOpen, setIsFormOpen] = useState(false)
     const [editingTransaction, setEditingTransaction] = useState<TransactionWithCategory | null>(null)
     const [selectedIds, setSelectedIds] = useState<string[]>([])
 
-    // Initialize hooks
+    // Initialize hooks with initial data for hydration
     const {
         transactions,
         loading,
@@ -35,11 +50,15 @@ export default function ExpensesPageClient({ userEmail }: { userEmail?: string }
         handleFilterChange,
         handlePageChange,
         clearFilters,
-    } = useTransactions({ limit: ITEMS_PER_PAGE })
+    } = useTransactions({
+        limit: ITEMS_PER_PAGE,
+        initialData: initialData?.transactions,
+        initialTotalCount: initialData?.totalCount
+    })
 
-    const { stats, loading: statsLoading, loadStats } = useTransactionStats()
-    const { categories, loading: categoriesLoading, initializeCategories } = useCategories()
-    const { currencySymbol, formatCurrency, loading: currencyLoading } = useCurrency()
+    const { stats, loading: statsLoading, loadStats } = useTransactionStats(initialData?.stats)
+    const { categories, loading: categoriesLoading, initializeCategories } = useCategories(undefined, initialData?.categories)
+    const { currencySymbol, formatCurrency, loading: currencyLoading } = useCurrency(initialData?.currencyCode, initialData?.currencySymbol)
 
     // Initialize data on mount
     useEffect(() => {
@@ -70,11 +89,15 @@ export default function ExpensesPageClient({ userEmail }: { userEmail?: string }
         setEditingTransaction(null)
     }
 
+    const [isPending, startTransition] = useTransition()
+
     const handleSuccess = async () => {
-        await Promise.all([
-            loadTransactions(),
-            loadStatsForCurrentMonth(),
-        ])
+        startTransition(async () => {
+            await Promise.all([
+                loadTransactions(),
+                loadStatsForCurrentMonth(),
+            ])
+        })
     }
 
     const handleDateFilter = useCallback((range: 'today' | 'week' | 'month') => {
@@ -313,8 +336,8 @@ export default function ExpensesPageClient({ userEmail }: { userEmail?: string }
                                                     key={page}
                                                     onClick={() => handlePageChange(page)}
                                                     className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ring-1 ring-inset ring-gray-300 focus:outline-offset-0 ${isActive
-                                                            ? 'z-10 bg-indigo-600 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600'
-                                                            : 'text-gray-900 hover:bg-gray-50'
+                                                        ? 'z-10 bg-indigo-600 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600'
+                                                        : 'text-gray-900 hover:bg-gray-50'
                                                         }`}
                                                 >
                                                     {page}

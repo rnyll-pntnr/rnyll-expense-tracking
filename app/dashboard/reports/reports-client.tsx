@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import React, { useState, useTransition, Suspense } from 'react'
 import { format, startOfMonth, endOfMonth, startOfYear, endOfYear, subDays, subMonths } from 'date-fns'
 import {
     getExpensesByCategory,
@@ -8,9 +8,6 @@ import {
     getMonthlyTrends,
     getSpendingComparison
 } from '@/app/actions/transactions'
-import { ExpenseByCategory } from '@/components/charts/expense-by-category'
-import { SpendingTrendChart } from '@/components/charts/spending-trend-chart'
-import { IncomeExpenseChart } from '@/components/charts/income-expense-chart'
 import { EnhancedStatsCard } from '@/components/dashboard/enhanced-stats-card'
 import { DateRangeSelector } from '@/components/dashboard/date-range-selector'
 import {
@@ -19,6 +16,17 @@ import {
     ChartSkeleton,
     PeriodComparisonSkeleton
 } from '@/components/skeletons'
+
+// Lazy load chart components
+const ExpenseByCategory = React.lazy(() => import('@/components/charts/expense-by-category').then(module => ({
+    default: module.ExpenseByCategory
+})))
+const SpendingTrendChart = React.lazy(() => import('@/components/charts/spending-trend-chart').then(module => ({
+    default: module.SpendingTrendChart
+})))
+const IncomeExpenseChart = React.lazy(() => import('@/components/charts/income-expense-chart').then(module => ({
+    default: module.IncomeExpenseChart
+})))
 
 type DateRange = '7d' | '30d' | '90d' | 'ytd' | 'custom'
 
@@ -250,11 +258,13 @@ export function ReportsClient({ initialData, user }: ReportsClientProps) {
                         {isPending ? (
                             <CategoryChartSkeleton />
                         ) : (
-                            <ExpenseByCategory
-                                data={categoryData}
-                                currencySymbol={initialData.currencySymbol}
-                                currencyCode={initialData.currencyCode}
-                            />
+                            <Suspense fallback={<CategoryChartSkeleton />}>
+                                <ExpenseByCategory
+                                    data={categoryData}
+                                    currencySymbol={initialData.currencySymbol}
+                                    currencyCode={initialData.currencyCode}
+                                />
+                            </Suspense>
                         )}
                     </div>
 
@@ -263,12 +273,14 @@ export function ReportsClient({ initialData, user }: ReportsClientProps) {
                         {isPending ? (
                             <ChartSkeleton />
                         ) : (
-                            <SpendingTrendChart
-                                data={trendData}
-                                currencySymbol={initialData.currencySymbol}
-                                currencyCode={initialData.currencyCode}
-                                title="Spending Trend (12 Months)"
-                            />
+                            <Suspense fallback={<ChartSkeleton />}>
+                                <SpendingTrendChart
+                                    data={trendData}
+                                    currencySymbol={initialData.currencySymbol}
+                                    currencyCode={initialData.currencyCode}
+                                    title="Spending Trend (12 Months)"
+                                />
+                            </Suspense>
                         )}
                     </div>
 
@@ -277,12 +289,14 @@ export function ReportsClient({ initialData, user }: ReportsClientProps) {
                         {isPending ? (
                             <ChartSkeleton />
                         ) : (
-                            <IncomeExpenseChart
-                                data={trendData}
-                                currencySymbol={initialData.currencySymbol}
-                                currencyCode={initialData.currencyCode}
-                                title="Income vs Expenses (12 Months)"
-                            />
+                            <Suspense fallback={<ChartSkeleton />}>
+                                <IncomeExpenseChart
+                                    data={trendData}
+                                    currencySymbol={initialData.currencySymbol}
+                                    currencyCode={initialData.currencyCode}
+                                    title="Income vs Expenses (12 Months)"
+                                />
+                            </Suspense>
                         )}
                     </div>
                 </div>

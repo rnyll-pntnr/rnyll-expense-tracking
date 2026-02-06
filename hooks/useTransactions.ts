@@ -1,17 +1,24 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useMemo } from 'react'
 import { getTransactions, deleteTransaction, getTransactionStats } from '@/app/actions/transactions'
 import type { TransactionWithCategory, TransactionFilters, TransactionStats } from '@/types'
 import toast from 'react-hot-toast'
 
 const DEFAULT_PAGE_SIZE = 10
 
-export function useTransactions(initialFilters: TransactionFilters = {}) {
-    const [transactions, setTransactions] = useState<TransactionWithCategory[]>([])
-    const [loading, setLoading] = useState(true)
+export function useTransactions({
+    initialData = [],
+    initialTotalCount = 0,
+    ...initialFilters
+}: {
+    initialData?: TransactionWithCategory[]
+    initialTotalCount?: number
+} & TransactionFilters = {}) {
+    const [transactions, setTransactions] = useState<TransactionWithCategory[]>(initialData)
+    const [loading, setLoading] = useState(initialData.length === 0) // Don't show loading if we have initial data
     const [deleting, setDeleting] = useState<string | null>(null)
-    const [totalCount, setTotalCount] = useState(0)
+    const [totalCount, setTotalCount] = useState(initialTotalCount)
     const [filters, setFilters] = useState<TransactionFilters>({
         ...initialFilters,
         page: initialFilters.page || 1,
@@ -64,14 +71,14 @@ export function useTransactions(initialFilters: TransactionFilters = {}) {
         try {
             const deletePromises = ids.map(id => deleteTransaction(id))
             const results = await Promise.all(deletePromises)
-            
+
             const errors = results.filter(r => r.error)
             if (errors.length > 0) {
                 toast.error(`Failed to delete ${errors.length} transactions`)
             } else {
                 toast.success(`Deleted ${ids.length} transactions`)
             }
-            
+
             await loadTransactions()
         } catch (error) {
             toast.error('Failed to delete transactions')
@@ -118,14 +125,14 @@ export function useTransactions(initialFilters: TransactionFilters = {}) {
     }
 }
 
-export function useTransactionStats() {
-    const [stats, setStats] = useState<TransactionStats & { overallBalance?: number }>({
+export function useTransactionStats(initialStats?: TransactionStats & { overallBalance?: number }) {
+    const [stats, setStats] = useState<TransactionStats & { overallBalance?: number }>(initialStats || {
         totalIncome: 0,
         totalExpense: 0,
         balance: 0,
         transactionCount: 0,
     })
-    const [loading, setLoading] = useState(true)
+    const [loading, setLoading] = useState(!initialStats) // Don't show loading if we have initial data
     const [error, setError] = useState<string | null>(null)
 
     const loadStats = useCallback(async (dateRange?: { startDate?: string; endDate?: string }, options?: { includeOverallBalance?: boolean }) => {

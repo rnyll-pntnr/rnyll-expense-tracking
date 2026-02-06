@@ -1,57 +1,60 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { getCurrencyInfo } from '@/lib/currencies'
 import { formatCurrency } from '@/lib/formatting'
 import { getUserSettings } from '@/app/actions/settings'
 import type { UserSettings } from '@/types'
 
-export function useCurrency() {
-    const [currencySymbol, setCurrencySymbol] = useState('Dh')
-    const [currencyCode, setCurrencyCode] = useState('AED')
-    const [loading, setLoading] = useState(true)
+export function useCurrency(initialCurrencyCode?: string, initialCurrencySymbol?: string) {
+    const [currencySymbol, setCurrencySymbol] = useState(initialCurrencySymbol || 'Dh')
+    const [currencyCode, setCurrencyCode] = useState(initialCurrencyCode || 'AED')
+    const [loading, setLoading] = useState(!initialCurrencyCode) // Don't show loading if we have initial data
     const [error, setError] = useState<string | null>(null)
 
-    useEffect(() => {
-        const loadCurrencySettings = async () => {
-            try {
-                setLoading(true)
-                const { data, error } = await getUserSettings()
-                
-                if (error) {
-                    setError(error)
-                    // Fallback to default currency
-                    const defaultCurrency = getCurrencyInfo('AED')
-                    setCurrencySymbol(defaultCurrency.symbol)
-                    setCurrencyCode('AED')
-                    return
-                }
+    const loadCurrencySettings = useCallback(async () => {
+        try {
+            setLoading(true)
+            const { data, error } = await getUserSettings()
 
-                const currency = getCurrencyInfo(data?.currency || 'AED')
-                setCurrencySymbol(currency.symbol)
-                setCurrencyCode(data?.currency || 'AED')
-            } catch (err) {
-                setError('Failed to load currency settings')
+            if (error) {
+                setError(error)
+                // Fallback to default currency
                 const defaultCurrency = getCurrencyInfo('AED')
                 setCurrencySymbol(defaultCurrency.symbol)
                 setCurrencyCode('AED')
-            } finally {
-                setLoading(false)
+                return
             }
-        }
 
-        loadCurrencySettings()
+            const currency = getCurrencyInfo(data?.currency || 'AED')
+            setCurrencySymbol(currency.symbol)
+            setCurrencyCode(data?.currency || 'AED')
+        } catch (err) {
+            setError('Failed to load currency settings')
+            const defaultCurrency = getCurrencyInfo('AED')
+            setCurrencySymbol(defaultCurrency.symbol)
+            setCurrencyCode('AED')
+        } finally {
+            setLoading(false)
+        }
     }, [])
 
-    const formatCurrencyWithCode = (amount: number) => {
-        return formatCurrency(amount, currencyCode)
-    }
+    useEffect(() => {
+        loadCurrencySettings()
+    }, [loadCurrencySettings])
 
-    return {
+    const formatCurrencyWithCode = useCallback((amount: number) => {
+        return formatCurrency(amount, currencyCode)
+    }, [currencyCode])
+
+    // Memoize return values for stability
+    const memoizedValues = useMemo(() => ({
         currencySymbol,
         currencyCode,
         loading,
         error,
         formatCurrency: formatCurrencyWithCode,
-    }
+    }), [currencySymbol, currencyCode, loading, error, formatCurrencyWithCode])
+
+    return memoizedValues
 }

@@ -106,8 +106,34 @@ export function TransactionForm({ isOpen, onClose, transaction, onSuccess, prelo
         // Validate
         const newErrors: Record<string, string> = {}
         const amountValue = formData.get('amount')
-        if (!amountValue || isNaN(Number(amountValue)) || Number(amountValue) <= 0) {
-            newErrors.amount = 'Please enter a valid amount'
+        const description = formData.get('description') as string
+        const date = formData.get('date') as string
+        const categoryId = formData.get('category') as string
+
+        if (!amountValue || isNaN(Number(amountValue)) || Number(amountValue) <= 0 || Number(amountValue) > 1000000) {
+            newErrors.amount = 'Please enter a valid amount (0 < amount ≤ 1,000,000)'
+        }
+
+        if (!description || description.trim().length < 2 || description.trim().length > 200) {
+            newErrors.description = 'Description must be between 2 and 200 characters'
+        }
+
+        if (!date) {
+            newErrors.date = 'Please select a date'
+        } else {
+            const selectedDate = new Date(date)
+            const today = new Date()
+            today.setHours(0, 0, 0, 0)
+            const maxDate = new Date(today.getTime() + 365 * 24 * 60 * 60 * 1000) // 1 year from now
+            const minDate = new Date(today.getTime() - 5 * 365 * 24 * 60 * 60 * 1000) // 5 years ago
+
+            if (selectedDate < minDate || selectedDate > maxDate) {
+                newErrors.date = 'Date must be between 5 years ago and 1 year from now'
+            }
+        }
+
+        if (!categoryId || categoryId === '') {
+            newErrors.category = 'Please select a category'
         }
 
         if (Object.keys(newErrors).length > 0) {

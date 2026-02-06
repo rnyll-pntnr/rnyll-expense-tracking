@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { formatCurrency, formatLargeNumber, formatPercentageChange } from '@/lib/formatting'
 import { InformationCircleIcon } from '@heroicons/react/24/outline'
 
@@ -18,7 +19,7 @@ interface EnhancedStatsCardProps {
     metricType?: 'income' | 'expense' | 'balance' // Added to determine trend color logic
 }
 
-export function EnhancedStatsCard({
+function EnhancedStatsCardComponent({
     title,
     value,
     currencySymbol,
@@ -129,3 +130,5 @@ export function EnhancedStatsCard({
         </div>
     )
 }
+
+export const EnhancedStatsCard = memo(EnhancedStatsCardComponent)

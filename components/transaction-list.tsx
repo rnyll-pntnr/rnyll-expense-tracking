@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { format } from 'date-fns'
 import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline'
 import { IconRenderer } from '@/components/icon-helper'
@@ -23,7 +23,7 @@ export function TransactionList({ transactions, onEdit, onUpdate, selectedIds = 
     const [expandedId, setExpandedId] = useState<string | null>(null)
     const { currencySymbol, formatCurrency } = useCurrency()
 
-    async function handleDelete(id: string) {
+    const handleDelete = useCallback(async (id: string) => {
         if (!confirm('Are you sure you want to delete this transaction?')) {
             return
         }
@@ -38,7 +38,7 @@ export function TransactionList({ transactions, onEdit, onUpdate, selectedIds = 
             onUpdate()
         }
         setDeleting(null)
-    }
+    }, [onUpdate])
 
     function handleToggleExpand(id: string) {
         setExpandedId(prev => prev === id ? null : id)

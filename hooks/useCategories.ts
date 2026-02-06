@@ -1,13 +1,13 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useMemo } from 'react'
 import { getCategories, seedDefaultCategories } from '@/app/actions/categories'
 import type { Category, TransactionType } from '@/types'
 import toast from 'react-hot-toast'
 
-export function useCategories(type?: TransactionType) {
-    const [categories, setCategories] = useState<Category[]>([])
-    const [loading, setLoading] = useState(true)
+export function useCategories(type?: TransactionType, initialCategories?: Category[]) {
+    const [categories, setCategories] = useState<Category[]>(initialCategories || [])
+    const [loading, setLoading] = useState(!initialCategories) // Don't show loading if we have initial data
     const [error, setError] = useState<string | null>(null)
 
     const loadCategories = useCallback(async (categoryType?: TransactionType) => {
@@ -41,8 +41,14 @@ export function useCategories(type?: TransactionType) {
         }
     }, [loadCategories])
 
+    // Memoize categories by type for performance
+    const memoizedCategories = useMemo(() => {
+        if (!type) return categories
+        return categories.filter(category => category.type === type)
+    }, [categories, type])
+
     return {
-        categories,
+        categories: memoizedCategories,
         loading,
         error,
         loadCategories,
